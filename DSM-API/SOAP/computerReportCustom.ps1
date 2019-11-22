@@ -26,8 +26,7 @@ catch {
 
 $hft = new-object DSSOAP.HostFilterTransport
 $hft.type = [DSSOAP.EnumHostFilterType]::ALL_HOSTS
-$response = $DSM.hostDetailRetrieve($HFT, [DSSOAP.EnumHostDetailLevel]::LOW, $SID) | Select-Object name, overallStatus, lastIPUsed, OverallDpiStatus, overallIntegrityMonitoringStatus
-
+$response = $DSM.hostDetailRetrieve(2, [DSSOAP.EnumHostDetailLevel]::LOW, $SID) | Select-Object name, overallStatus, lastIPUsed, OverallDpiStatus, overallIntegrityMonitoringStatus
 $response | Export-Csv -Path .\computerReport.csv -Append -NoTypeInformation
 
 $DSM.endSession($SID)
