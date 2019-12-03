@@ -26,8 +26,13 @@ do {
     maxItems = $pageSize
     searchCriteria = @(
         @{
-        idTest = 'greater-than'
-        idValue = $ID
+            idTest = 'greater-than'
+            idValue = $ID
+        },
+        @{
+            fieldName = 'lastIPUsed'
+            stringTest = 'not-equal'
+            stringValue = ''
         }
     )
     }
