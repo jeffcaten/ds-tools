@@ -62,7 +62,6 @@ function computerGroupSearchFunction {
     Param (
         [String] $groupName
     )
-    ########### Search for group by name ###########
     $computerGroupSearch = @{
         maxItems = "1"
         searchCriteria = @(
