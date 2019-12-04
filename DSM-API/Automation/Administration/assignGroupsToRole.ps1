@@ -128,6 +128,4 @@ foreach ($i in $roleData) {
         $roleModifyVar = roleModifyFunction $existingRoleResults.GroupIDs $groupIDResults $existingRoleResults.roleID
         write-host -NoNewline "Computer group "; Write-Host -NoNewline -f Green $i.groupName ; Write-Host -NoNewline " assigned to "; Write-Host -f Green $i.roleName
     }
-
-    
 }
