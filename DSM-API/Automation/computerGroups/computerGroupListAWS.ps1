@@ -27,6 +27,11 @@ do {
       @{
         idTest = 'greater-than'
         idValue = $ID
+      },
+      @{
+        numericValue = '0'
+        numericTest = 'not-equal'
+        fieldName = 'amazonAccountID'
       }
     )
   }
