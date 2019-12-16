@@ -11,7 +11,7 @@ param (
 $urlSearch = "https://$manager/api/computers/search?expand=allSecurityModules"
 
 $ID = 0
-$pageSize = 500
+$pageSize = 5000
 $groupDetailsResults =  @()
 
 # Headers to use for all rest queries
@@ -67,5 +67,5 @@ do {
     #write-host $ID
     Start-Sleep -m 40
 }
-until ($endLoop -le 499)
+until ($endLoop -le 4999)
 $groupDetailsResults | export-csv -path .\computerReport.csv -NoTypeInformation -Append
