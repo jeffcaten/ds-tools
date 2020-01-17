@@ -63,7 +63,7 @@ do {
     $i++
     }
     until ($i -eq $endLoop)
-    $ID +=$pageSize
+    $ID +=$endLoop
     #write-host $ID
     Start-Sleep -m 40
 }
