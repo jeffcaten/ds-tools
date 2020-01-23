@@ -19,7 +19,7 @@ $headers = @{
 }
 
 # Import list of computers located in the same directory as this script
-$computers = Import-Csv ".\computerCreate.csv"
+$computers = Import-Csv ".\computersCreateCSV.csv"
 
 # Loop through above CSV to do the following:
 #   Look up computer by hostname in DSM to see if it exists.
