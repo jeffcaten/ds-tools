@@ -9,6 +9,7 @@
 # All Nodes
 echo 'Disable swap'
 swapoff -a
+sudo apt update
 sudo apt install docker.io -y
 docker --version
 sudo systemctl enable docker
@@ -54,6 +55,7 @@ helm init --service-account tiller
 
 # Install Smart Check
 helm install \
+  --set auth.secretSeed=Password1 \
   --set activationCode=<activationCode> \
   --name deepsecurity-smartcheck \
   --set persistence.enabled=false \
