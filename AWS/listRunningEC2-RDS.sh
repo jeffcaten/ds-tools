@@ -2,6 +2,7 @@
 
 logFileLocation="./listRunningEC2-RDS.txt"
 
+date +"%m-%d-%Y-%T"  | tee -a $logFileLocation
 # AWS region array
 array=(
 "us-east-2"
@@ -33,11 +34,11 @@ echo "Looking for running EC2 instances" | tee -a $logFileLocation
 for region in "${array[@]}"
 do
 	echo $region  | tee -a $logFileLocation
-    aws ec2 describe-instances \
-        --query 'Reservations[*].Instances[*].[InstanceId,State.Name,InstanceType,KeyName,LaunchTime]' \
-        --filters Name=instance-state-name,Values=running \
-        --output table \
-        --region $region | tee -a $logFileLocation
+    #aws ec2 describe-instances \
+    #    --query 'Reservations[*].Instances[*].[InstanceId,State.Name,InstanceType,KeyName,LaunchTime]' \
+    #    --filters Name=instance-state-name,Values=running \
+    #    --output table \
+    #    --region $region | tee -a $logFileLocation
 done
 
 echo "Looking for running RDS instances" | tee -a $logFileLocation
@@ -45,8 +46,10 @@ for region in "${array[@]}"
 do
 	echo $region  | tee -a $logFileLocation
     #aws rds describe-db-instances --output table --region $region
-    aws rds describe-db-instances \
-    --query 'DBInstances[?DBInstanceStatus==`available`].[DBInstanceIdentifier,DBInstanceStatus,DBInstanceClass,InstanceCreateTime]' \
-    --output table \
-    --region $region | tee -a $logFileLocation
+    #aws rds describe-db-instances \
+    #--query 'DBInstances[?DBInstanceStatus==`available`].[DBInstanceIdentifier,DBInstanceStatus,DBInstanceClass,InstanceCreateTime]' \
+    #--output table \
+    #--region $region | tee -a $logFileLocation
 done
+
+date +"%m-%d-%Y-%T"  | tee -a $logFileLocation
