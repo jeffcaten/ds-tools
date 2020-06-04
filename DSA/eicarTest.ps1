@@ -14,5 +14,5 @@ Invoke-WebRequest -Uri $httpsUrl -OutFile $outputHTTPS
 Write-Output "Time taken: $((Get-Date).Subtract($start_time).Seconds) second(s)"
 
 
-
+# Request the Deep Security Agent to heartbeat into the Deep Security Manager
 & $Env:ProgramFiles"\Trend Micro\Deep Security Agent\dsa_control" -m
