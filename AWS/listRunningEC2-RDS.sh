@@ -32,12 +32,12 @@ array=(
 #"ap-northeast-3"
 "${arr[@]}")
 
-echo "Looking for running EC2 instances" | tee -a $logFileLocation
+echo "Looking for running EC2 instances that do no have CSE tag" | tee -a $logFileLocation
 for region in "${array[@]}"
 do
 	echo $region  | tee -a $logFileLocation
     aws ec2 describe-instances \
-        --query 'Reservations[*].Instances[*].[InstanceId,State.Name,InstanceType,KeyName,LaunchTime]' \
+        --query 'Reservations[*].Instances[?!not_null(Tags[?Key == `CSE`].Value)].[InstanceId,State.Name,InstanceType,KeyName,LaunchTime]' \
         --filters Name=instance-state-name,Values=running \
         --output table \
         --region $region | tee -a $logFileLocation
@@ -49,7 +49,7 @@ do
 	echo $region  | tee -a $logFileLocation
     #aws rds describe-db-instances --output table --region $region
     aws rds describe-db-instances \
-    --query 'DBInstances[?DBInstanceStatus==`available`].[DBInstanceIdentifier,DBInstanceStatus,DBInstanceClass,InstanceCreateTime]' \
+    --query 'DBInstances[?DBInstanceStatus==`running`].[DBInstanceIdentifier,DBInstanceStatus,DBInstanceClass,InstanceCreateTime]' \
     --output table \
     --region $region | tee -a $logFileLocation
 done
