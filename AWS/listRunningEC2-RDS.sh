@@ -1,5 +1,4 @@
 #!/bin/bash
-
 logFileLocation="./listRunningEC2-RDS.txt"
 echo ''
 echo "============================================"  | tee -a $logFileLocation
