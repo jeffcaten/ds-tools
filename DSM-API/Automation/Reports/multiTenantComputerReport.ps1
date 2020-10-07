@@ -128,27 +128,37 @@ function ComputerReportFunction {
     }
     $computerSearchBody = $computerSearchHash | ConvertTo-Json
     
-    $computerSearchResults = Invoke-WebRequest -Uri $computerSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $computerSearchBody  | ConvertFrom-Json
-
-    foreach ($Item in $computerSearchResults.computers){
-        $Host_ID					= $Item.ID
-        $HostName					= $Item.hostName
-        $DisplayName				= $Item.displayName
-        $AgentStatus				= $Item.computerStatus.agentStatusMessages
-        $AgentVersion				= $Item.agentVersion
-        $AntiMalwareState			= $Item.antiMalware.state
-        $WebReputationState			= $Item.webReputation.state
-        $FirewallState				= $Item.firewall.state 
-        $IntrusionPreventionState	= $Item.intrusionPrevention.state
-        $IntegrityMnitoringState	= $Item.integrityMonitoring.state
-        $LogInspectionState			= $Item.logInspection.state
-        $ApplicaionControlState		= $Item.applicationControl.state
-
-        $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
-        Add-Content -Path $REPORTFILE -Value $ReportData
+    try {
+        $computerSearchResults = Invoke-WebRequest -Uri $computerSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $computerSearchBody  | ConvertFrom-Json
     }
+    catch {
+        $computerSearchResultStatus = "Failed"
+    }
+    
+    if ($computerSearchResults) {
+        foreach ($Item in $computerSearchResults.computers){
+            $Host_ID					= $Item.ID
+            $HostName					= $Item.hostName
+            $DisplayName				= $Item.displayName
+            $AgentStatus				= $Item.computerStatus.agentStatusMessages
+            $AgentVersion				= $Item.agentVersion
+            $AntiMalwareState			= $Item.antiMalware.state
+            $WebReputationState			= $Item.webReputation.state
+            $FirewallState				= $Item.firewall.state 
+            $IntrusionPreventionState	= $Item.intrusionPrevention.state
+            $IntegrityMnitoringState	= $Item.integrityMonitoring.state
+            $LogInspectionState			= $Item.logInspection.state
+            $ApplicaionControlState		= $Item.applicationControl.state
 
-
+            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
+            Add-Content -Path $REPORTFILE -Value $ReportData
+        }
+        $computerSearchResultStatus = "Success"
+    }
+    else {
+        $computerSearchResultStatus = "Failed"
+    }
+    return $computerSearchResultStatus
 }
 
 function tenantComputerReportFunction {
@@ -176,7 +186,12 @@ function tenantComputerReportFunction {
     }
     $computerSearchBody = $computerSearchHash | ConvertTo-Json
     
-    $computerSearchResults = Invoke-WebRequest -Uri $computerSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $computerSearchBody  | ConvertFrom-Json
+    try {
+        $computerSearchResults = Invoke-WebRequest -Uri $computerSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $computerSearchBody  | ConvertFrom-Json   
+    }
+    catch {
+        $computerSearchResultStatus = "Failed"
+    }
 
     if ($computerSearchResults) {
         foreach ($Item in $computerSearchResults.computers){
@@ -246,4 +261,5 @@ foreach ($i in $tenantSearchResults.tenants) {
 }
 
 # Get computer list from T0 and output to repot file.
-ComputerReportFunction $manager $apikey
+$ComputerReportStatus = ComputerReportFunction $manager $apikey
+write-host "T0 - $ComputerReportStatus"
