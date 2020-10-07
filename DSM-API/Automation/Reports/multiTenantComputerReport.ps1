@@ -47,8 +47,8 @@ $headers = @{
     "api-secret-key" = $apikey
 }
 
-
-$reportName = "mtComputerReport"
+$reportTime = get-date -f yyyy-MM-dd-HHmm
+$reportName = "mtComputerReport - $reportTime"
 
 $reportFile = $reportName + ".csv"
 
