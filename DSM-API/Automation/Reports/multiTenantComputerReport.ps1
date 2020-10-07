@@ -61,7 +61,7 @@ if ((Test-Path $reportFile) -eq $true){
 }
 #>
 
-$ReportHeader = 'TenantName, Host_ID, HostName, DisplayName, AgentStatus, AgentVersion, AntiMalwareState, WebReputationState, FirewallState, IntrusionPreventionState, IntegrityMnitoringState, LogInspectionState, ApplicaionControlState'
+$ReportHeader = 'TenantName, Host_ID, HostName, DisplayName, AgentStatus, AgentVersion, AntiMalwareState, WebReputationState, FirewallState, IntrusionPreventionState, IntrusionPreventionStatus, IntegrityMnitoringState, LogInspectionState, ApplicaionControlState'
 
 try{
     Add-Content -Path $reportFile -Value $ReportHeader -ErrorAction Stop
@@ -185,11 +185,13 @@ function ComputerReportFunction {
             $WebReputationState			= $Item.webReputation.state
             $FirewallState				= $Item.firewall.state 
             $IntrusionPreventionState	= $Item.intrusionPrevention.state
+            $IntrusionPreventionStatusCommas	= $Item.intrusionPrevention.moduleStatus.agentStatusMessage
+            $IntrusionPreventionStatus = $IntrusionPreventionStatusCommas -replace "," -replace ""
             $IntegrityMnitoringState	= $Item.integrityMonitoring.state
             $LogInspectionState			= $Item.logInspection.state
             $ApplicaionControlState		= $Item.applicationControl.state
 
-            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
+            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
             Add-Content -Path $reportFile -Value $ReportData
         }
         $computerSearchResultStatus = "Success"
@@ -243,11 +245,13 @@ function tenantComputerReportFunction {
             $WebReputationState			= $Item.webReputation.state
             $FirewallState				= $Item.firewall.state 
             $IntrusionPreventionState	= $Item.intrusionPrevention.state
+            $IntrusionPreventionStatusCommas	= $Item.intrusionPrevention.moduleStatus.agentStatusMessage
+            $IntrusionPreventionStatus = $IntrusionPreventionStatusCommas -replace "," -replace ""
             $IntegrityMnitoringState	= $Item.integrityMonitoring.state
             $LogInspectionState			= $Item.logInspection.state
             $ApplicaionControlState		= $Item.applicationControl.state
     
-            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
+            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
             Add-Content -Path $reportFile -Value $ReportData
         }
         $computerSearchResultStatus = "Success"
