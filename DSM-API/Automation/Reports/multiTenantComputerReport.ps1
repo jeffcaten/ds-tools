@@ -258,6 +258,8 @@ function deleteTenantApiKey {
 # Search for all tenants in T0
 $tenantSearchResults = tenatSearchFunction $manager
 
+write-host "Tenant name - computerReport - deleteTenantApiKey"
+
 foreach ($i in $tenantSearchResults.tenants) {
     $tenantID = $i.ID
     $TenantName = $i.name
