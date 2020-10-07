@@ -315,6 +315,6 @@ foreach ($i in $tenantSearchResults.tenants) {
     Start-Sleep -m 40
 }
 
-# Get computer list from T0 and output to repot file.
+# Get computer list from T0 and output to report file.
 $ComputerReportStatus = ComputerReportFunction $manager $apikey
 write-host "T0 - N/A - $ComputerReportStatus - N/A"
