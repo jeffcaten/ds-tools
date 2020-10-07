@@ -1,5 +1,4 @@
 <#
-
 .SYNOPSIS
 Powershell script to generate a computer report from T0 and Tn in a multi-tenant Deep Security Environment.
 
@@ -31,6 +30,7 @@ Script Output file:
 
 This script should clean up the ApiKeys that it creates.  If the script can't delete the ComputerReport ApiKey for some reason an adminitrator will need to clean up the left over ApiKey from the effected tenants.
 #>
+#requires -version 5.0
 
 param (
     [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
@@ -90,7 +90,7 @@ function tenatSearchFunction {
     }
     $tenantSearchBody = $tenantSearchHash | ConvertTo-Json
     
-    $tenantSearchResults = Invoke-WebRequest -Uri $tenantSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $tenantSearchBody  | ConvertFrom-Json
+    $tenantSearchResults = Invoke-WebRequest -Uri $tenantSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $tenantSearchBody   | ConvertFrom-Json
 
     return $tenantSearchResults
 }
