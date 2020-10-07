@@ -238,6 +238,14 @@ function deleteTenantApiKey {
     catch {
         $deleteTenantApiKeyStatus = "Failed"
     }
+
+    $statusCodeResults = $deleteTenantApiKeyResults.StatusCode
+    if ($statusCodeResults -eq 204) {
+        $deleteTenantApiKeyStatus = "Success"
+    }
+    else {
+        $deleteTenantApiKeyStatus = "Failed"
+    }
     return $deleteTenantApiKeyStatus
 }
 
@@ -259,8 +267,8 @@ foreach ($i in $tenantSearchResults.tenants) {
         $tenantComputerReportStatus = tenantComputerReportFunction $manager $tenantApiKey $TenantName
         
         # Delete the API key from each tenant.
-        deleteTenantApiKey $manager $tenantApiKey $apiKeyID
-        write-host "$TenantName - $tenantComputerReportStatus"
+        $deleteTenantApiKeyStatus =  deleteTenantApiKey $manager $tenantApiKey $apiKeyID
+        write-host "$TenantName - $tenantComputerReportStatus - $deleteTenantApiKeyStatus"
     }
 
 }
