@@ -312,7 +312,7 @@ foreach ($i in $tenantSearchResults.tenants) {
         $deleteTenantApiKeyStatus =  deleteTenantApiKey $manager $tenantApiKey $apiKeyID
         write-host "$TenantName - $tenantApiKeyCreateStatus - $tenantComputerReportStatus - $deleteTenantApiKeyStatus"
     }
-
+    Start-Sleep -m 40
 }
 
 # Get computer list from T0 and output to repot file.
