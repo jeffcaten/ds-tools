@@ -226,15 +226,19 @@ function deleteTenantApiKey {
         [Parameter(Mandatory=$true, HelpMessage="Tenant API Key ID")][string]$apiKeyID
     )
 
-    $tenantComputerReportheaders = @{
+    $deleteTenantApiKeyheaders = @{
         "api-version" = "v1"
         "api-secret-key" = $tenantApiKey
     }
 
-    $tenantComputerReportURL = "https://$manager/api/apikeys/$apiKeyID"
-
-    $tenantComputerReportResults = Invoke-WebRequest -Uri $tenantComputerReportURL -Method DELETE -ContentType "application/json" -Headers $tenantComputerReportheaders
-
+    $deleteTenantApiKeyURL = "https://$manager/api/apikeys/$apiKeyID"
+    try {
+        $deleteTenantApiKeyResults = Invoke-WebRequest -Uri $deleteTenantApiKeyURL -Method DELETE -ContentType "application/json" -Headers $deleteTenantApiKeyheaders
+    }
+    catch {
+        $deleteTenantApiKeyStatus = "Failed"
+    }
+    return $deleteTenantApiKeyStatus
 }
 
 
@@ -253,9 +257,10 @@ foreach ($i in $tenantSearchResults.tenants) {
         # Get computer list and output to report file.
         
         $tenantComputerReportStatus = tenantComputerReportFunction $manager $tenantApiKey $TenantName
-        write-host "$TenantName - $tenantComputerReportStatus"
+        
         # Delete the API key from each tenant.
         deleteTenantApiKey $manager $tenantApiKey $apiKeyID
+        write-host "$TenantName - $tenantComputerReportStatus"
     }
 
 }
