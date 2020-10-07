@@ -33,7 +33,14 @@ if ((Test-Path $REPORTFILE) -eq $true){
 #>
 
 $ReportHeader = 'TenantName, Host_ID, HostName, DisplayName, AgentStatus, AgentVersion, AntiMalwareState, WebReputationState, FirewallState, IntrusionPreventionState, IntegrityMnitoringState, LogInspectionState, ApplicaionControlState'
-Add-Content -Path $REPORTFILE -Value $ReportHeader
+
+try{
+    Add-Content -Path $REPORTFILE -Value $ReportHeader -ErrorAction Stop
+}catch{
+    $Error[0]
+    Write-Warning "$_"
+    Continue
+}
 
 
 
