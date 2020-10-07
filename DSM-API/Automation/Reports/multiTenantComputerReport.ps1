@@ -178,25 +178,30 @@ function tenantComputerReportFunction {
     
     $computerSearchResults = Invoke-WebRequest -Uri $computerSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $computerSearchBody  | ConvertFrom-Json
 
-    foreach ($Item in $computerSearchResults.computers){
-        $Host_ID					= $Item.ID
-        $HostName					= $Item.hostName
-        $DisplayName				= $Item.displayName
-        $AgentStatus				= $Item.computerStatus.agentStatusMessages
-        $AgentVersion				= $Item.agentVersion
-        $AntiMalwareState			= $Item.antiMalware.state
-        $WebReputationState			= $Item.webReputation.state
-        $FirewallState				= $Item.firewall.state 
-        $IntrusionPreventionState	= $Item.intrusionPrevention.state
-        $IntegrityMnitoringState	= $Item.integrityMonitoring.state
-        $LogInspectionState			= $Item.logInspection.state
-        $ApplicaionControlState		= $Item.applicationControl.state
-
-        $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
-        Add-Content -Path $REPORTFILE -Value $ReportData
+    if ($computerSearchResults) {
+        foreach ($Item in $computerSearchResults.computers){
+            $Host_ID					= $Item.ID
+            $HostName					= $Item.hostName
+            $DisplayName				= $Item.displayName
+            $AgentStatus				= $Item.computerStatus.agentStatusMessages
+            $AgentVersion				= $Item.agentVersion
+            $AntiMalwareState			= $Item.antiMalware.state
+            $WebReputationState			= $Item.webReputation.state
+            $FirewallState				= $Item.firewall.state 
+            $IntrusionPreventionState	= $Item.intrusionPrevention.state
+            $IntegrityMnitoringState	= $Item.integrityMonitoring.state
+            $LogInspectionState			= $Item.logInspection.state
+            $ApplicaionControlState		= $Item.applicationControl.state
+    
+            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
+            Add-Content -Path $REPORTFILE -Value $ReportData
+        }
+        $computerSearchResultStatus = "Success"
     }
-
-
+    else {
+        $computerSearchResultStatus = "Failed"
+    }
+    return $computerSearchResultStatus
 }
 
 function deleteTenantApiKey {
@@ -227,15 +232,17 @@ foreach ($i in $tenantSearchResults.tenants) {
 
     # Create an API key for each tenant
     $tenantApiKeyArray = createTenantApiKeyFunction $manager $tenantID
+    if ($tenantApiKeyArray[0]) {
+        $apiKeyID = $tenantApiKeyArray[0]
+        $tenantApiKey = $tenantApiKeyArray[1]
+        # Get computer list and output to report file.
+        
+        $tenantComputerReportStatus = tenantComputerReportFunction $manager $tenantApiKey $TenantName
+        write-host "$TenantName - $tenantComputerReportStatus"
+        # Delete the API key from each tenant.
+        deleteTenantApiKey $manager $tenantApiKey $apiKeyID
+    }
 
-    $apiKeyID = $tenantApiKeyArray[0]
-    $tenantApiKey = $tenantApiKeyArray[1]
-    # Get computer list and output to report file.
-    
-    tenantComputerReportFunction $manager $tenantApiKey $TenantName
-    write-host $TenantName
-    # Delete the API key from each tenant.
-    deleteTenantApiKey $manager $tenantApiKey $apiKeyID
 }
 
 # Get computer list from T0 and output to repot file.
