@@ -41,7 +41,7 @@ param (
 [System.Net.ServicePointManager]::ServerCertificateValidationCallback={$true}
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# Headers to use for all rest queries
+# Headers to use for all Api queries to T0
 $headers = @{
     "api-version" = "v1"
     "api-secret-key" = $apikey
