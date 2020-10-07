@@ -292,29 +292,31 @@ function deleteTenantApiKey {
 # Search for all tenants in T0
 $tenantSearchResults = tenatSearchFunction $manager
 
-write-host "tenantName -createTenantApiKey - computerReport - deleteTenantApiKey"
+if ($tenantSearchResults) {
+    write-host "tenantName -createTenantApiKey - computerReport - deleteTenantApiKey"
 
-foreach ($i in $tenantSearchResults.tenants) {
-    $tenantID = $i.ID
-    $TenantName = $i.name
+    foreach ($i in $tenantSearchResults.tenants) {
+        $tenantID = $i.ID
+        $TenantName = $i.name
 
-    # Create an API key for each tenant
-    $tenantApiKeyArray = createTenantApiKeyFunction $manager $tenantID
-    if ($tenantApiKeyArray[0]) {
-        $apiKeyID = $tenantApiKeyArray[0]
-        $tenantApiKey = $tenantApiKeyArray[1]
-        $tenantApiKeyCreateStatus = $tenantApiKeyArray[2]
-        # Get computer list and output to report file.
-        
-        $tenantComputerReportStatus = tenantComputerReportFunction $manager $tenantApiKey $TenantName
-        
-        # Delete the API key from each tenant.
-        $deleteTenantApiKeyStatus =  deleteTenantApiKey $manager $tenantApiKey $apiKeyID
-        write-host "$TenantName - $tenantApiKeyCreateStatus - $tenantComputerReportStatus - $deleteTenantApiKeyStatus"
+        # Create an API key for each tenant
+        $tenantApiKeyArray = createTenantApiKeyFunction $manager $tenantID
+        if ($tenantApiKeyArray[0]) {
+            $apiKeyID = $tenantApiKeyArray[0]
+            $tenantApiKey = $tenantApiKeyArray[1]
+            $tenantApiKeyCreateStatus = $tenantApiKeyArray[2]
+            # Get computer list and output to report file.
+            
+            $tenantComputerReportStatus = tenantComputerReportFunction $manager $tenantApiKey $TenantName
+            
+            # Delete the API key from each tenant.
+            $deleteTenantApiKeyStatus =  deleteTenantApiKey $manager $tenantApiKey $apiKeyID
+            write-host "$TenantName - $tenantApiKeyCreateStatus - $tenantComputerReportStatus - $deleteTenantApiKeyStatus"
+        }
+        Start-Sleep -m 40
     }
-    Start-Sleep -m 40
-}
 
-# Get computer list from T0 and output to report file.
-$ComputerReportStatus = ComputerReportFunction $manager $apikey
-write-host "T0 - N/A - $ComputerReportStatus - N/A"
+    # Get computer list from T0 and output to report file.
+    $ComputerReportStatus = ComputerReportFunction $manager $apikey
+    write-host "T0 - N/A - $ComputerReportStatus - N/A" 
+}
