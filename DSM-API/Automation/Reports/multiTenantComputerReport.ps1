@@ -19,30 +19,28 @@ $headers = @{
 }
 
 
-$REPORTNAME = "mtComputerReport"
+$reportName = "mtComputerReport"
 
-$REPORTFILE = $REPORTNAME + ".csv"
+$reportFile = $reportName + ".csv"
 
 <#
-if ((Test-Path $REPORTFILE) -eq $true){
+if ((Test-Path $reportFile) -eq $true){
     $BackupDate          = get-date -format MMddyyyy-HHmm
-    $BackupReportName    = $REPORTNAME + "_" + $BackupDate + ".csv"
-    copy-item -Path $REPORTFILE -Destination $BackupReportName
-    Remove-item $REPORTFILE
+    $BackupReportName    = $reportName + "_" + $BackupDate + ".csv"
+    copy-item -Path $reportFile -Destination $BackupReportName
+    Remove-item $reportFile
 }
 #>
 
 $ReportHeader = 'TenantName, Host_ID, HostName, DisplayName, AgentStatus, AgentVersion, AntiMalwareState, WebReputationState, FirewallState, IntrusionPreventionState, IntegrityMnitoringState, LogInspectionState, ApplicaionControlState'
 
 try{
-    Add-Content -Path $REPORTFILE -Value $ReportHeader -ErrorAction Stop
+    Add-Content -Path $reportFile -Value $ReportHeader -ErrorAction Stop
 }catch{
     $Error[0]
     Write-Warning "$_"
     Continue
 }
-
-
 
 function tenatSearchFunction {
     param (
@@ -158,7 +156,7 @@ function ComputerReportFunction {
             $ApplicaionControlState		= $Item.applicationControl.state
 
             $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
-            Add-Content -Path $REPORTFILE -Value $ReportData
+            Add-Content -Path $reportFile -Value $ReportData
         }
         $computerSearchResultStatus = "Success"
     }
@@ -216,7 +214,7 @@ function tenantComputerReportFunction {
             $ApplicaionControlState		= $Item.applicationControl.state
     
             $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
-            Add-Content -Path $REPORTFILE -Value $ReportData
+            Add-Content -Path $reportFile -Value $ReportData
         }
         $computerSearchResultStatus = "Success"
     }
