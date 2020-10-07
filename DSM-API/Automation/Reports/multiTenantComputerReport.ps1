@@ -1,6 +1,35 @@
 <#
-Example to run:
+
+.SYNOPSIS
+Powershell script to generate a computer report from T0 and Tn in a multi-tenant Deep Security Environment.
+
+.DESCRIPTION
+The multiTenantComputerReport script will log use an API key from T0 to get a list of active tenants.  
+The script will then create and ApiKey for that tenant then use that new Apikey to get a list of computers from that tenant.  
+The newly create tenant Apikey will be deleted and the script will move on to the next tenant.
+The script will output the list of computers with certain fields to a CSV.
+
+.PARAMETER manager
+The -manager parameter requires a hostname or IP and port in the format hostname.local:4119 or 198.51.100.10:443
+
+.PARAMETER apikey
+The -apikey parameter requires a Deep Security Manager API key with the full access role.
+
+.EXAMPLE
 .\multiTenantComputerReport.ps1 -manager <DSM Hostname> -apikey <API-Key>
+
+.NOTES
+Example Script Output:
+
+    tenantName -createTenantApiKey - computerReport - deleteTenantApiKey
+    jeff - Success - Success - Success
+    test-1 - Success - Success - Success
+    T0 - N/A - Success - N/A
+
+Script Output file:
+    .\mtComputerReport.csv
+
+This script should clean up the ApiKeys that it creates.  If the script can't delete the ComputerReport ApiKey for some reason an adminitrator will need to clean up the left over ApiKey from the effected tenants.
 #>
 
 param (
@@ -62,14 +91,7 @@ function tenatSearchFunction {
     $tenantSearchBody = $tenantSearchHash | ConvertTo-Json
     
     $tenantSearchResults = Invoke-WebRequest -Uri $tenantSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $tenantSearchBody  | ConvertFrom-Json
-    #write-host $tenantSearchResults.tenants.name
-    #write-host $tenantSearchResults.tenants.ID
 
-
-    
-
-    #$tenantID =  $tenantSearchResults.tenants.ID
-    #return $tenantID
     return $tenantSearchResults
 }
 
