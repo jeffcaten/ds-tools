@@ -61,7 +61,7 @@ if ((Test-Path $reportFile) -eq $true){
 }
 #>
 
-$ReportHeader = 'TenantName, Host_ID, HostName, DisplayName, AgentStatus, AgentVersion, AntiMalwareState, WebReputationState, FirewallState, IntrusionPreventionState, IntrusionPreventionStatus, IntegrityMnitoringState, LogInspectionState, ApplicaionControlState'
+$ReportHeader = 'TenantName, Host_ID, HostName, DisplayName, AgentStatus, AgentVersion, AntiMalwareState, WebReputationState, FirewallState, IntrusionPreventionState, IntrusionPreventionStatus, IntegrityMnitoringState, LogInspectionState, ApplicaionControlState, lastIPUsed, ipAddress, macAddress'
 
 try{
     Add-Content -Path $reportFile -Value $ReportHeader -ErrorAction Stop
@@ -200,8 +200,12 @@ function ComputerReportFunction {
             $LogInspectionState			        = $LogInspectionStateCommas -replace "," -replace ""
             $ApplicaionControlStateCommas       = $Item.applicationControl.state
             $ApplicaionControlState		        = $ApplicaionControlStateCommas -replace "," -replace ""
+            $lastIPUsed                         = $Item.lastIPUsed
+            [string]$ipAddress                  = $Item.interfaces.interfaces.IPs
+            [string]$macAddress                 = $Item.interfaces.interfaces.MAC
 
-            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
+
+            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState, $lastIPUsed, $ipAddress, $macAddress"
             Add-Content -Path $reportFile -Value $ReportData
         }
         $computerSearchResultStatus = "Success"
@@ -270,8 +274,11 @@ function tenantComputerReportFunction {
             $LogInspectionState			        = $LogInspectionStateCommas -replace "," -replace ""
             $ApplicaionControlStateCommas       = $Item.applicationControl.state
             $ApplicaionControlState		        = $ApplicaionControlStateCommas -replace "," -replace ""
+            $lastIPUsed                         = $Item.lastIPUsed
+            [string]$ipAddress                  = $Item.interfaces.interfaces.IPs
+            [string]$macAddress                 = $Item.interfaces.interfaces.MAC
     
-            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
+            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState, $lastIPUsed, $ipAddress, $macAddress"
             Add-Content -Path $reportFile -Value $ReportData
         }
         $computerSearchResultStatus = "Success"
