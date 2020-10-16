@@ -176,20 +176,30 @@ function ComputerReportFunction {
     
     if ($computerSearchResults) {
         foreach ($Item in $computerSearchResults.computers){
-            $Host_ID					= $Item.ID
-            $HostName					= $Item.hostName
-            $DisplayName				= $Item.displayName
-            $AgentStatus				= $Item.computerStatus.agentStatusMessages
-            $AgentVersion				= $Item.agentVersion
-            $AntiMalwareState			= $Item.antiMalware.state
-            $WebReputationState			= $Item.webReputation.state
-            $FirewallState				= $Item.firewall.state 
-            $IntrusionPreventionState	= $Item.intrusionPrevention.state
+            $Host_ID					        = $Item.ID
+            $HostName					        = $Item.hostName
+            $DisplayNameCommas			        = $Item.displayName
+            $DisplayName				        = $DisplayNameCommas -replace "," -replace ""
+            $AgentStatusCommas				    = $Item.computerStatus.agentStatusMessages
+            $AgentStatus				        = $AgentStatusCommas -replace "," -replace ""
+            $AgentVersionCommas			        = $Item.agentVersion
+            $AgentVersion				        = $AgentVersionCommas -replace "," -replace ""
+            $AntiMalwareStateCommas			    = $Item.antiMalware.state
+            $AntiMalwareState			        = $AntiMalwareStateCommas -replace "," -replace ""
+            $WebReputationStateCommas	        = $Item.webReputation.state
+            $WebReputationState			        = $WebReputationStateCommas -replace "," -replace ""
+            $FirewallStateCommas		        = $Item.firewall.state 
+            $FirewallState				        = $FirewallStateCommas -replace "," -replace ""
+            $IntrusionPreventionStateCommas     = $Item.intrusionPrevention.state
+            $IntrusionPreventionState	        = $IntrusionPreventionStateCommas -replace "," -replace ""
             $IntrusionPreventionStatusCommas	= $Item.intrusionPrevention.moduleStatus.agentStatusMessage
-            $IntrusionPreventionStatus = $IntrusionPreventionStatusCommas -replace "," -replace ""
-            $IntegrityMnitoringState	= $Item.integrityMonitoring.state
-            $LogInspectionState			= $Item.logInspection.state
-            $ApplicaionControlState		= $Item.applicationControl.state
+            $IntrusionPreventionStatus          = $IntrusionPreventionStatusCommas -replace "," -replace ""
+            $IntegrityMnitoringStateCommas      = $Item.integrityMonitoring.state
+            $IntegrityMnitoringState	        = $IntegrityMnitoringStateCommas -replace "," -replace ""
+            $LogInspectionStateCommas	        = $Item.logInspection.state
+            $LogInspectionState			        = $LogInspectionStateCommas -replace "," -replace ""
+            $ApplicaionControlStateCommas       = $Item.applicationControl.state
+            $ApplicaionControlState		        = $ApplicaionControlStateCommas -replace "," -replace ""
 
             $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
             Add-Content -Path $reportFile -Value $ReportData
@@ -236,20 +246,30 @@ function tenantComputerReportFunction {
 
     if ($computerSearchResults) {
         foreach ($Item in $computerSearchResults.computers){
-            $Host_ID					= $Item.ID
-            $HostName					= $Item.hostName
-            $DisplayName				= $Item.displayName
-            $AgentStatus				= $Item.computerStatus.agentStatusMessages
-            $AgentVersion				= $Item.agentVersion
-            $AntiMalwareState			= $Item.antiMalware.state
-            $WebReputationState			= $Item.webReputation.state
-            $FirewallState				= $Item.firewall.state 
-            $IntrusionPreventionState	= $Item.intrusionPrevention.state
+            $Host_ID					        = $Item.ID
+            $HostName					        = $Item.hostName
+            $DisplayNameCommas			        = $Item.displayName
+            $DisplayName				        = $DisplayNameCommas -replace "," -replace ""
+            $AgentStatusCommas				    = $Item.computerStatus.agentStatusMessages
+            $AgentStatus				        = $AgentStatusCommas -replace "," -replace ""
+            $AgentVersionCommas			        = $Item.agentVersion
+            $AgentVersion				        = $AgentVersionCommas -replace "," -replace ""
+            $AntiMalwareStateCommas			    = $Item.antiMalware.state
+            $AntiMalwareState			        = $AntiMalwareStateCommas -replace "," -replace ""
+            $WebReputationStateCommas	        = $Item.webReputation.state
+            $WebReputationState			        = $WebReputationStateCommas -replace "," -replace ""
+            $FirewallStateCommas		        = $Item.firewall.state 
+            $FirewallState				        = $FirewallStateCommas -replace "," -replace ""
+            $IntrusionPreventionStateCommas     = $Item.intrusionPrevention.state
+            $IntrusionPreventionState	        = $IntrusionPreventionStateCommas -replace "," -replace ""
             $IntrusionPreventionStatusCommas	= $Item.intrusionPrevention.moduleStatus.agentStatusMessage
-            $IntrusionPreventionStatus = $IntrusionPreventionStatusCommas -replace "," -replace ""
-            $IntegrityMnitoringState	= $Item.integrityMonitoring.state
-            $LogInspectionState			= $Item.logInspection.state
-            $ApplicaionControlState		= $Item.applicationControl.state
+            $IntrusionPreventionStatus          = $IntrusionPreventionStatusCommas -replace "," -replace ""
+            $IntegrityMnitoringStateCommas      = $Item.integrityMonitoring.state
+            $IntegrityMnitoringState	        = $IntegrityMnitoringStateCommas -replace "," -replace ""
+            $LogInspectionStateCommas	        = $Item.logInspection.state
+            $LogInspectionState			        = $LogInspectionStateCommas -replace "," -replace ""
+            $ApplicaionControlStateCommas       = $Item.applicationControl.state
+            $ApplicaionControlState		        = $ApplicaionControlStateCommas -replace "," -replace ""
     
             $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState"
             Add-Content -Path $reportFile -Value $ReportData
