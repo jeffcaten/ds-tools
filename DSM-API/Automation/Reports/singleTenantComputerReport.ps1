@@ -18,7 +18,7 @@ The -apikey parameter requires a Deep Security Manager API key with the full acc
 Example Script Output:
 
 Script Output file:
-    .\mtComputerReport.csv
+    .\computerReport.csv
 #>
 
 #requires -version 5.0
@@ -39,9 +39,9 @@ $headers = @{
 }
 
 $reportTime = get-date -f yyyy-MM-dd-HHmmss
-$reportName = "mtComputerReport - $reportTime"
+$reportName = "computerReport - $reportTime"
 $reportFile = $reportName + ".csv"
-$ReportHeader = 'Host_ID, HostName, DisplayName, AgentStatus, AgentVersion, AntiMalwareState, WebReputationState, FirewallState, IntrusionPreventionState, IntrusionPreventionStatus, IntegrityMnitoringState, LogInspectionState, ApplicaionControlState, awsInstanceID, awsAmiID, awsSecurityGroups, awsInstancType, lastIPUsed, ipAddress, macAddress'
+$ReportHeader = 'Host_ID, HostName, DisplayName, AgentStatus, AgentVersion, AntiMalwareState, WebReputationState, FirewallState, IntrusionPreventionState, IntrusionPreventionStatus, IntegrityMnitoringState, LogInspectionState, ApplicaionControlState, awsInstanceID, awsAmiID, awsSecurityGroups, awsInstanceType, lastIPUsed, ipAddress, macAddress'
 
 try{
     Add-Content -Path $reportFile -Value $ReportHeader -ErrorAction Stop
@@ -111,12 +111,12 @@ function ComputerReportFunction {
             $awsInstanceID                      = $Item.ec2VirtualMachineSummary.instanceID
             $awsAmiID                           = $Item.ec2VirtualMachineSummary.amiID
             [string[]]$awsSecurityGroups       = $Item.ec2VirtualMachineSummary.securityGroups | out-string -stream
-            $awsInstancType                     = $Item.ec2VirtualMachineSummary.type
+            $awsInstanceType                     = $Item.ec2VirtualMachineSummary.type
             $lastIPUsed                         = $Item.lastIPUsed
             [string]$ipAddress                  = $Item.interfaces.interfaces.IPs
             [string]$macAddress                 = $Item.interfaces.interfaces.MAC
 
-            $ReportData =  "$Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState, $awsInstanceID, $awsAmiID, $awsSecurityGroups, $awsInstancType, $lastIPUsed, $ipAddress, $macAddress"
+            $ReportData =  "$Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState, $awsInstanceID, $awsAmiID, $awsSecurityGroups, $awsInstanceType, $lastIPUsed, $ipAddress, $macAddress"
             Add-Content -Path $reportFile -Value $ReportData
         }
         $computerSearchResultStatus = "Success"
