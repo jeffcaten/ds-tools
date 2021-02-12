@@ -61,7 +61,7 @@ if ((Test-Path $reportFile) -eq $true){
 }
 #>
 
-$ReportHeader = 'TenantName, Host_ID, HostName, DisplayName, AgentStatus, AgentVersion, AntiMalwareState, WebReputationState, FirewallState, IntrusionPreventionState, IntrusionPreventionStatus, IntegrityMnitoringState, LogInspectionState, ApplicaionControlState, lastIPUsed, ipAddress, macAddress'
+$ReportHeader = 'TenantName, Host_ID, HostName, DisplayName, AgentStatus, AgentVersion, Platform, AntiMalwareState, WebReputationState, FirewallState, IntrusionPreventionState, IntrusionPreventionStatus, IntegrityMnitoringState, LogInspectionState, ApplicaionControlState, lastIPUsed, ipAddress, macAddress'
 
 try{
     Add-Content -Path $reportFile -Value $ReportHeader -ErrorAction Stop
@@ -184,6 +184,8 @@ function ComputerReportFunction {
             $AgentStatus				        = $AgentStatusCommas -replace "," -replace ""
             $AgentVersionCommas			        = $Item.agentVersion
             $AgentVersion				        = $AgentVersionCommas -replace "," -replace ""
+            $PlatformCommas                     = $Item.platform
+            $Platform                           = $PlatformCommas -replace "," -replace ""
             $AntiMalwareStateCommas			    = $Item.antiMalware.state
             $AntiMalwareState			        = $AntiMalwareStateCommas -replace "," -replace ""
             $WebReputationStateCommas	        = $Item.webReputation.state
@@ -205,7 +207,7 @@ function ComputerReportFunction {
             [string]$macAddress                 = $Item.interfaces.interfaces.MAC
 
 
-            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState, $lastIPUsed, $ipAddress, $macAddress"
+            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $Platform , $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState, $lastIPUsed, $ipAddress, $macAddress"
             Add-Content -Path $reportFile -Value $ReportData
         }
         $computerSearchResultStatus = "Success"
@@ -258,6 +260,8 @@ function tenantComputerReportFunction {
             $AgentStatus				        = $AgentStatusCommas -replace "," -replace ""
             $AgentVersionCommas			        = $Item.agentVersion
             $AgentVersion				        = $AgentVersionCommas -replace "," -replace ""
+            $AgentVersionCommas			        = $Item.agentVersion
+            $AgentVersion				        = $AgentVersionCommas -replace "," -replace ""
             $AntiMalwareStateCommas			    = $Item.antiMalware.state
             $AntiMalwareState			        = $AntiMalwareStateCommas -replace "," -replace ""
             $WebReputationStateCommas	        = $Item.webReputation.state
@@ -278,7 +282,7 @@ function tenantComputerReportFunction {
             [string]$ipAddress                  = $Item.interfaces.interfaces.IPs
             [string]$macAddress                 = $Item.interfaces.interfaces.MAC
     
-            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState, $lastIPUsed, $ipAddress, $macAddress"
+            $ReportData =  "$TenantName, $Host_ID, $HostName, $DisplayName, $AgentStatus, $AgentVersion, $Platform, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState, $lastIPUsed, $ipAddress, $macAddress"
             Add-Content -Path $reportFile -Value $ReportData
         }
         $computerSearchResultStatus = "Success"
