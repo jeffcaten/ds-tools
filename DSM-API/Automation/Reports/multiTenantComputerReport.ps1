@@ -260,8 +260,8 @@ function tenantComputerReportFunction {
             $AgentStatus				        = $AgentStatusCommas -replace "," -replace ""
             $AgentVersionCommas			        = $Item.agentVersion
             $AgentVersion				        = $AgentVersionCommas -replace "," -replace ""
-            $AgentVersionCommas			        = $Item.agentVersion
-            $AgentVersion				        = $AgentVersionCommas -replace "," -replace ""
+            $PlatformCommas                     = $Item.platform
+            $Platform                           = $PlatformCommas -replace "," -replace ""
             $AntiMalwareStateCommas			    = $Item.antiMalware.state
             $AntiMalwareState			        = $AntiMalwareStateCommas -replace "," -replace ""
             $WebReputationStateCommas	        = $Item.webReputation.state
