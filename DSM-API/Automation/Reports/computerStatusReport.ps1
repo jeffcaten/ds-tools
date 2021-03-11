@@ -38,11 +38,14 @@ $headers = @{
     "api-secret-key" = $apikey
 }
 
+# Setting variables for CSV and CSV headers
 $reportTime = get-date -f yyyy-MM-dd-HHmmss
 $reportName = "computerReport - $reportTime"
 $reportFile = $reportName + ".csv"
-$ReportHeader = 'Host_ID, HostName, DisplayName, AgentStatus, lastAgentCommunication, AgentVersion, agentPlatform, groupID, agentPolicy, AntiMalwareState, WebReputationState, FirewallState, IntrusionPreventionState, IntrusionPreventionStatus, IntegrityMnitoringState, LogInspectionState, ApplicaionControlState, lastIPUsed'
+$ReportHeader = 'Host_ID, HostName, DisplayName, AgentStatus, lastAgentCommunication, AgentVersion, agentPlatform, groupID, agentPolicy, AntiMalwareState, WebReputationState, FirewallState, IntrusionPreventionState, IntrusionPreventionStatus, IntegrityMnitoringState, LogInspectionState, ApplicaionControlState, lastIPUsed, smartScanAgentPattern'
 
+# Writing out the CSV and CSV headers.
+# Try cat to throw a warning if the file can't be created
 try{
     Add-Content -Path $reportFile -Value $ReportHeader -ErrorAction Stop
 }catch{
@@ -51,6 +54,7 @@ try{
     Continue
 }
 
+# Function to search for computers and output the results the CSV created above.
 function ComputerReportFunction {
     param (
         [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
@@ -84,6 +88,7 @@ function ComputerReportFunction {
     
     if ($computerSearchResults) {
         foreach ($Item in $computerSearchResults.computers){
+
             $Host_ID					        = $Item.ID
             $HostName					        = $Item.hostName
             $DisplayNameCommas			        = $Item.displayName
@@ -113,10 +118,11 @@ function ComputerReportFunction {
             $ApplicaionControlStateCommas       = $Item.applicationControl.state
             $ApplicaionControlState		        = $ApplicaionControlStateCommas -replace "," -replace ""
             $lastIPUsed                         = $Item.lastIPUsed
+            $smartScanAgentPattern              = $item.securityUpdates.antiMalware | Where-Object {$_.name -eq "Smart Scan Agent Pattern"} | ForEach-Object {$_.version}
 
-            $ReportData =  "$Host_ID, $HostName, $DisplayName, $AgentStatus, $lastAgentCommunication, $AgentVersion, $agentPlatform, $groupID, $agentPolicy, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState, $lastIPUsed"
+            $ReportData =  "$Host_ID, $HostName, $DisplayName, $AgentStatus, $lastAgentCommunication, $AgentVersion, $agentPlatform, $groupID, $agentPolicy, $AntiMalwareState, $WebReputationState, $FirewallState, $IntrusionPreventionState, $IntrusionPreventionStatus, $IntegrityMnitoringState, $LogInspectionState, $ApplicaionControlState, $lastIPUsed, $smartScanAgentPattern"
             Add-Content -Path $reportFile -Value $ReportData
-            
+
         }
         $computerSearchResultStatus = "Success"
     }
