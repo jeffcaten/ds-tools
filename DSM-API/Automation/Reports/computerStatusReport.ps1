@@ -133,3 +133,4 @@ function ComputerReportFunction {
 }
 
 $ComputerReportStatus = ComputerReportFunction $manager $apikey
+write-host "Report Status: " $ComputerReportStatus 
