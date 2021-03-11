@@ -83,7 +83,7 @@ function ComputerReportFunction {
         $computerSearchResults = Invoke-WebRequest -Uri $computerSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $computerSearchBody  | ConvertFrom-Json
     }
     catch {
-        $computerSearchResultStatus = "Failed"
+        $computerSearchResultStatus = "API call failed"
     }
     
     if ($computerSearchResults) {
@@ -127,7 +127,7 @@ function ComputerReportFunction {
         $computerSearchResultStatus = "Success"
     }
     else {
-        $computerSearchResultStatus = "Failed"
+        $computerSearchResultStatus = "No items returned from api call."
     }
     return $computerSearchResultStatus
 }
