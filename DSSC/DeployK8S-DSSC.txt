@@ -42,8 +42,8 @@ kubeadm join 172.16.1.0:6443 --token 4hiaoa.938najomebgr24kb \
 
 
 
-# Install helm and tiller
-curl -L https://git.io/get_helm.sh | bash
+# Install helm 3 and tiller
+curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
 
 kubectl create serviceaccount \
   --namespace kube-system \
