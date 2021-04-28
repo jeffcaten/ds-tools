@@ -7,7 +7,7 @@
 
 
 # All Nodes
-echo 'Disable swap'
+sudo sed -e '/swap.img/ s/^#*/#/' -i /etc/fstab
 swapoff -a
 sudo apt update
 sudo apt install docker.io -y
