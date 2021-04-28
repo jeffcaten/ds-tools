@@ -44,13 +44,15 @@ kubeadm join 172.16.1.0:6443 --token 4hiaoa.938najomebgr24kb \
 
 # Install helm and tiller
 curl -L https://git.io/get_helm.sh | bash
-kubectl config current-context
+
 kubectl create serviceaccount \
   --namespace kube-system \
   tiller
-  kubectl create clusterrolebinding tiller-cluster-role \
+
+kubectl create clusterrolebinding tiller-cluster-role \
   --clusterrole=cluster-admin \
   --serviceaccount=kube-system:tiller
+
 helm init --service-account tiller
 
 # Install Smart Check
