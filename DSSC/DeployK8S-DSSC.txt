@@ -8,7 +8,7 @@
 
 # All Nodes
 sudo sed -e '/swap.img/ s/^#*/#/' -i /etc/fstab
-swapoff -a
+sudo swapoff -a
 sudo apt update
 sudo apt install docker.io -y
 docker --version
