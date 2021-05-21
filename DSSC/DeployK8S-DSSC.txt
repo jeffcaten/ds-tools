@@ -26,8 +26,10 @@ mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
+# Close out if your SSH session or log out of your session then log back into the K8S Master Node
+
 # Deploy Flannel
-sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
 kubectl get pods --all-namespaces -o wide
 
 # If you are only deloying a single node you can use the following command to make the master node be a worker node as well:
