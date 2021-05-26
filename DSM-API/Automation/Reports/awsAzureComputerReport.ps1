@@ -24,12 +24,15 @@ Script Output file:
 #requires -version 5.0
 
 param (
-    [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
+    [Parameter(Mandatory=$false, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
     [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$apikey
 )
 
-#$manager = "app.deepsecurity.trendmicro.com"
-
+# If the $manager parameter is blank this script assumes you are trying to the C1WS/DSaaS manager.
+if(!$manager) {
+    Write-Host "Manager is blank, assuming C1WS."
+    $manager = "app.deepsecurity.trendmicro.com"
+}
 # Set Cert verification and TLS version to 1.2.
 [System.Net.ServicePointManager]::ServerCertificateValidationCallback={$true}
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
