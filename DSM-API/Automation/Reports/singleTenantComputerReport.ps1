@@ -32,6 +32,9 @@ param (
 [System.Net.ServicePointManager]::ServerCertificateValidationCallback={$true}
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
+# Disabled the progress bar for invoke-webrequest.  This speeds up the request.
+$ProgressPreference = 'SilentlyContinue'
+
 # Headers to use for all Api queries to T0
 $headers = @{
     "api-version" = "v1"
