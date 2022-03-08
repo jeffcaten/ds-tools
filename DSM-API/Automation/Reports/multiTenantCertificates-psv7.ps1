@@ -138,23 +138,8 @@ function tenantCertificateReportFunction {
     
     $computerSearchURL = "https://$manager/api/certificates"
 
-    <#
-    $computerSearchHash = @{
-        maxItems = "5000"
-        searchCriteria = @(
-            @{
-                idValue = '0'
-                idTest = 'greater-than'
-            }
-        )
-    }
-    $computerSearchBody = $computerSearchHash | ConvertTo-Json
-    #>
-
     $computerSearchResults = Invoke-WebRequest -Uri $computerSearchURL -Method Get -ContentType "application/json" -Headers $headers -SkipCertificateCheck  | ConvertFrom-Json  
-    
-    #Write-Host $computerSearchResults.certificates.certificateDetails.serialNumber
-    #Write-Host $TenantName
+
     $certificateSerialNumber = $computerSearchResults.certificates.certificateDetails.serialNumber
     $certificateCount = 0
     foreach ($item in $computerSearchResults.certificates) {
@@ -231,35 +216,46 @@ $tenantSearchResults = tenatSearchFunction $manager
 if ($tenantSearchResults) {
     write-host "tenantName, createTenantApiKey, Number of Certificates, deleteTenantApiKey"
 
+    # Loop through each tenant
     foreach ($tenant in $tenantSearchResults.tenants) {
         $tenantID = $tenant.ID
         $TenantName = $tenant.name
 
         # Create an API key for each tenant
         $tenantApiKeyArray = createTenantApiKeyFunction $manager $tenantID
+
         if ($tenantApiKeyArray[0]) {
             $apiKeyID = $tenantApiKeyArray[0]
             $tenantApiKey = $tenantApiKeyArray[1]
             $tenantApiKeyCreateStatus = $tenantApiKeyArray[2]
             
-            # Get certificate list and output to report file.
+            # Get certificate a list of the certificate file names
             $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
+
+            # Loop through each certificate and add each certificate to the tenant
             foreach ($item in $localCertificates) {
                 [string]$certificate = get-content $certificateDirectory$item
                 $addCertificateStatus = addCertificate $manager $tenantApiKey $certificate
             }
+
+            # Count the number of certificates in the tenant
             $tenantCertStatus = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
             
-            # Delete the API key from each tenant.
+            # Delete the API key from the tenant.
             $deleteTenantApiKeyStatus =  deleteTenantApiKey $manager $tenantApiKey $apiKeyID
+
             write-host "$TenantName, $tenantApiKeyCreateStatus, $tenantCertStatus, $deleteTenantApiKeyStatus"
         }
         Start-Sleep -m 40
     } 
 }
 
+# Add certificates to T0
 $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
 foreach ($item in $localCertificates) {
     [string]$certificate = get-content $certificateDirectory$item
     $addCertificateStatus = addCertificate $manager $apikey $certificate
 }
+$TenantName = "T0"
+$tenantCertStatus = tenantCertificateReportFunction $manager $apikey $TenantName
+write-host "$TenantName, $tenantApiKeyCreateStatus, $tenantCertStatus, $deleteTenantApiKeyStatus"
