@@ -69,7 +69,7 @@ function tenatSearchFunction {
     }
     $tenantSearchBody = $tenantSearchHash | ConvertTo-Json
     
-    $tenantSearchResults = Invoke-WebRequest -Uri $tenantSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $tenantSearchBody   | ConvertFrom-Json
+    $tenantSearchResults = Invoke-WebRequest -Uri $tenantSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $tenantSearchBody -SkipCertificateCheck   | ConvertFrom-Json
 
     return $tenantSearchResults
 }
@@ -94,12 +94,12 @@ function createTenantApiKeyFunction {
     }
     $createTenantApiKeyBody = $createTenantApiKeyHash | ConvertTo-Json
     
-    try {
-        $createTenantApiKeyResults = Invoke-WebRequest -Uri $createTenantApiKeyURL -Method Post -ContentType "application/json" -Headers $headers -Body $createTenantApiKeyBody  | ConvertFrom-Json
-    }
-    catch {
-        $tenantApiKeyCreateStatus = "Failed"
-    }
+    #try {
+        $createTenantApiKeyResults = Invoke-WebRequest -Uri $createTenantApiKeyURL -Method Post -ContentType "application/json" -Headers $headers -Body $createTenantApiKeyBody -SkipCertificateCheck  | ConvertFrom-Json
+    #}
+    #catch {
+    #    $tenantApiKeyCreateStatus = "Failed"
+    #}
 
     if ($createTenantApiKeyResults.secretKey) {
         $tenantApiKeyCreateStatus = "Success"
@@ -148,7 +148,7 @@ function tenantCertificateReportFunction {
     $computerSearchBody = $computerSearchHash | ConvertTo-Json
     #>
 
-    $computerSearchResults = Invoke-WebRequest -Uri $computerSearchURL -Method Get -ContentType "application/json" -Headers $headers  | ConvertFrom-Json  
+    $computerSearchResults = Invoke-WebRequest -Uri $computerSearchURL -Method Get -ContentType "application/json" -Headers $headers -SkipCertificateCheck  | ConvertFrom-Json  
     
     #Write-Host $computerSearchResults.certificates.certificateDetails.serialNumber
     #Write-Host $TenantName
@@ -183,7 +183,7 @@ function addCertificate{
     $body = $bodyHas | ConvertTo-Json
 
     try {
-        $addCertificateResults = Invoke-WebRequest $addCertificatehURL -Method 'POST' -Headers $headers -Body $body   
+        $addCertificateResults = Invoke-WebRequest $addCertificatehURL -Method 'POST' -Headers $headers -Body $body -SkipCertificateCheck -SkipHttpErrorCheck  
     }
     catch {
         $addCertificateStatus = "Failed to add certificate"
@@ -205,7 +205,7 @@ function deleteTenantApiKey {
 
     $deleteTenantApiKeyURL = "https://$manager/api/apikeys/$apiKeyID"
     try {
-        $deleteTenantApiKeyResults = Invoke-WebRequest -Uri $deleteTenantApiKeyURL -Method DELETE -ContentType "application/json" -Headers $deleteTenantApiKeyheaders
+        $deleteTenantApiKeyResults = Invoke-WebRequest -Uri $deleteTenantApiKeyURL -Method DELETE -ContentType "application/json" -Headers $deleteTenantApiKeyheaders -SkipCertificateCheck
     }
     catch {
         $deleteTenantApiKeyStatus = "Failed"
@@ -225,7 +225,6 @@ function deleteTenantApiKey {
 # Search for all active tenants in T0
 $tenantSearchResults = tenatSearchFunction $manager
 
-
 if ($tenantSearchResults) {
     write-host "tenantName, createTenantApiKey, Number of Certificates, deleteTenantApiKey"
 
@@ -235,6 +234,7 @@ if ($tenantSearchResults) {
 
         # Create an API key for each tenant
         $tenantApiKeyArray = createTenantApiKeyFunction $manager $tenantID
+        Write-Host $tenantApiKeyArray
         if ($tenantApiKeyArray[0]) {
             $apiKeyID = $tenantApiKeyArray[0]
             $tenantApiKey = $tenantApiKeyArray[1]
