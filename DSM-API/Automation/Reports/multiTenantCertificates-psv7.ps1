@@ -255,9 +255,11 @@ if ($tenantSearchResults) {
             write-host "$TenantName, $tenantApiKeyCreateStatus, $tenantCertStatus, $deleteTenantApiKeyStatus"
         }
         Start-Sleep -m 40
-    }
+    } 
+}
 
-    # Get computer list from T0 and output to report file.
-    #$ComputerReportStatus = tenantCertificateReportFunction $manager $apikey
-    #write-host "T0, N/A, $ComputerReportStatus, N/A" 
+$localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
+foreach ($item in $localCertificates) {
+    [string]$certificate = get-content $certificateDirectory$item
+    $addCertificateStatus = addCertificate $manager $apikey $certificate
 }
