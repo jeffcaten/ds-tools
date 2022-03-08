@@ -88,8 +88,8 @@ function createTenantApiKeyFunction {
     [long]$timestamp = (([datetime]::UtcNow)-(Get-Date -Date '1/1/1970')).TotalMilliseconds + 2000000
 
     $createTenantApiKeyHash = @{
-        keyName = 'ComputerReport'
-        description = 'Temp API Key for Computer Report'
+        keyName = 'AddCertificate'
+        description = 'Temp API Key used to add certificates to this tenant'
         locale = 'en-US'
         timeZone = 'America/Chicago'
         active = 'true'
