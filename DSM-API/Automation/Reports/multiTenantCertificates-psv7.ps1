@@ -34,8 +34,11 @@ This script should clean up the ApiKeys that it creates.  If the script can't de
 
 param (
     [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
-    [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$apikey
+    [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$apikey,
+    [Parameter(Mandatory=$true, HelpMessage="Directory that contains all of the certificates; ex c:\temp\certificates\")][string]$certificateDirectory
 )
+
+#$certificateDirectory = "C:\temp\certs\"
 
 # Set Cert verification and TLS version to 1.2.
 [System.Net.ServicePointManager]::ServerCertificateValidationCallback={$true}
@@ -240,8 +243,11 @@ if ($tenantSearchResults) {
             $tenantApiKeyCreateStatus = $tenantApiKeyArray[2]
             
             # Get certificate list and output to report file.
-            [string]$certificate = get-content 'C:\temp\certs\cert01.cer'
-            $addCertificateStatus = addCertificate $manager $tenantApiKey $certificate
+            $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
+            foreach ($item in $localCertificates) {
+                [string]$certificate = get-content $certificateDirectory$item
+                $addCertificateStatus = addCertificate $manager $tenantApiKey $certificate
+            }
             $tenantCertStatus = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
             
             # Delete the API key from each tenant.
