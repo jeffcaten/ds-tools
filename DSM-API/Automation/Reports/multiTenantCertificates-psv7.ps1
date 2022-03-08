@@ -123,7 +123,6 @@ function createTenantApiKeyFunction {
 
 }
 
-
 function tenantCertificateReportFunction {
     param (
         [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
