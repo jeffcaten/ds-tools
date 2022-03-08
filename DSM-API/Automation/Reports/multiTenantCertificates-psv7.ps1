@@ -94,12 +94,12 @@ function createTenantApiKeyFunction {
     }
     $createTenantApiKeyBody = $createTenantApiKeyHash | ConvertTo-Json
     
-    #try {
+    try {
         $createTenantApiKeyResults = Invoke-WebRequest -Uri $createTenantApiKeyURL -Method Post -ContentType "application/json" -Headers $headers -Body $createTenantApiKeyBody -SkipCertificateCheck  | ConvertFrom-Json
-    #}
-    #catch {
-    #    $tenantApiKeyCreateStatus = "Failed"
-    #}
+    }
+    catch {
+        $tenantApiKeyCreateStatus = "Failed"
+    }
 
     if ($createTenantApiKeyResults.secretKey) {
         $tenantApiKeyCreateStatus = "Success"
@@ -234,7 +234,6 @@ if ($tenantSearchResults) {
 
         # Create an API key for each tenant
         $tenantApiKeyArray = createTenantApiKeyFunction $manager $tenantID
-        Write-Host $tenantApiKeyArray
         if ($tenantApiKeyArray[0]) {
             $apiKeyID = $tenantApiKeyArray[0]
             $tenantApiKey = $tenantApiKeyArray[1]
@@ -243,7 +242,6 @@ if ($tenantSearchResults) {
             # Get certificate list and output to report file.
             [string]$certificate = get-content 'C:\temp\certs\cert01.cer'
             $addCertificateStatus = addCertificate $manager $tenantApiKey $certificate
-            Write-Host $addCertificateStatus
             $tenantCertStatus = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
             
             # Delete the API key from each tenant.
