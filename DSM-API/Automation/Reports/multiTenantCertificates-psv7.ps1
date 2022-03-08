@@ -1,12 +1,11 @@
 <#
 .SYNOPSIS
-Powershell script to generate a computer report from T0 and Tn in a multi-tenant Deep Security Environment.
+Powershell script adds trusted certificates to all active tenants and T0 in a multi-tenant Deep Security deployment
 
 .DESCRIPTION
-The multiTenantComputerReport script will log use an API key from T0 to get a list of active tenants.  
-The script will then create and ApiKey for that tenant then use that new Apikey to get a list of computers from that tenant.  
+The multiTenantCertificates script will login use an API key from T0 to get a list of active tenants.  
+The script will then create and ApiKey for that tenant then use that new Apikey to add all of the certificates from a specified directory.  
 The newly create tenant Apikey will be deleted and the script will move on to the next tenant.
-The script will output the list of computers with certain fields to a CSV.
 
 .PARAMETER manager
 The -manager parameter requires a hostname or IP and port in the format hostname.local:4119 or 198.51.100.10:443
@@ -14,21 +13,22 @@ The -manager parameter requires a hostname or IP and port in the format hostname
 .PARAMETER apikey
 The -apikey parameter requires a Deep Security Manager API key with the full access role.
 
+.PARAMETER certificateDirectory
+The -certificateDirectory parameter requires a directory path like c:\temp\certificates\.  The trailing slash must be included.
+
 .EXAMPLE
-.\multiTenantComputerReport.ps1 -manager <DSM Hostname> -apikey <API-Key>
+.\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -certificateDirectory c:\temp\certs\
 
 .NOTES
 Example Script Output:
+    tenantName, createTenantApiKey, Number of Certificates, deleteTenantApiKey
+    test1, Success, 4, Success
+    test3, Success, 4, Success
+    test4, Success, 4, Success
+    test5, Success, 4, Success
+    T0, Success, 4, Success
 
-    tenantName -createTenantApiKey - computerReport - deleteTenantApiKey
-    jeff - Success - Success - Success
-    test-1 - Success - Success - Success
-    T0 - N/A - Success - N/A
-
-Script Output file:
-    .\mtComputerReport.csv
-
-This script should clean up the ApiKeys that it creates.  If the script can't delete the ComputerReport ApiKey for some reason an adminitrator will need to clean up the left over ApiKey from the effected tenants.
+This script should clean up the ApiKeys that it creates.  If the script can't delete the AddCertificate ApiKey for some reason an adminitrator will need to clean up the left over ApiKey from the effected tenants.
 #>
 #requires -version 7.0
 
