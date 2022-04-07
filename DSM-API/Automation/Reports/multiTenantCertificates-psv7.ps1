@@ -228,6 +228,7 @@ if ($tenantSearchResults) {
             $tenantApiKey = $tenantApiKeyArray[1]
             $tenantApiKeyCreateStatus = $tenantApiKeyArray[2]
             
+            <#
             # Get certificate a list of the certificate file names
             $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
 
@@ -236,6 +237,7 @@ if ($tenantSearchResults) {
                 [string]$certificate = get-content $certificateDirectory$item
                 $addCertificateStatus = addCertificate $manager $tenantApiKey $certificate
             }
+            #>
 
             # Count the number of certificates in the tenant
             $tenantCertStatus = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
