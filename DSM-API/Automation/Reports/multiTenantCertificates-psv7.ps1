@@ -35,7 +35,7 @@ This script should clean up the ApiKeys that it creates.  If the script can't de
 param (
     [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
     [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$apikey,
-    [Parameter(Mandatory=$true, HelpMessage="Directory that contains all of the certificates; ex c:\temp\certificates\")][string]$certificateDirectory
+    [Parameter(Mandatory=$false, HelpMessage="Directory that contains all of the certificates; ex c:\temp\certificates\")][string]$certificateDirectory
 )
 
 #$certificateDirectory = "C:\temp\certs\"
