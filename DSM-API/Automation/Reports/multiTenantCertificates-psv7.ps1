@@ -190,17 +190,19 @@ function deleteExpiredCertificate {
         "api-secret-key" = $tenantApiKey
     }
     
-    $certificateSearchURL = "https://$manager/api/certificates"
+    $certificateListURL = "https://$manager/api/certificates"
+    $certificateDeletehURL = "https://$manager/api/certificates/"
 
-    $certificateSearchResults = Invoke-WebRequest -Uri $certificateSearchURL -Method Get -ContentType "application/json" -Headers $headers -SkipCertificateCheck  | ConvertFrom-Json  
+    $certificateListResults = Invoke-WebRequest -Uri $certificateListURL -Method Get -ContentType "application/json" -Headers $headers -SkipCertificateCheck  | ConvertFrom-Json  
     $currentTime = [int64](([datetime]::UtcNow)-(get-date "1/1/1970")).TotalMilliseconds
-    foreach ($item in $certificateSearchResults.certificates) {
-        $apikeyCreatedTime = (Get-Date "1970-01-01 00:00:00.000Z") + ([TimeSpan]::FromMilliSeconds($item.certificateDetails.notAfter))
+    foreach ($item in $certificateListResults.certificates) {
+        #$apikeyCreatedTime = (Get-Date "1970-01-01 00:00:00.000Z") + ([TimeSpan]::FromMilliSeconds($item.certificateDetails.notAfter))
         
         #write-host $item.certificateDetails.notAfter
 
         if ($item.certificateDetails.notAfter -le $currentTime) {
             write-host "Certificate is expired this is the ID: "$item.ID
+            $certificateDeleteResults = Invoke-WebRequest -Uri $certificateDeletehURL/$item.ID -Method Delete -ContentType "application/json" -Headers $headers -SkipCertificateCheck  | ConvertFrom-Json
         }
         else {
             Write-host "Certificate is still valid"
@@ -244,6 +246,12 @@ function deleteTenantApiKey {
 # Search for all active tenants in T0
 $tenantSearchResults = tenatSearchFunction $manager
 
+if ($certificateDirectory) {
+    $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
+    $localCertificatesCount = $localCertificates.count
+    write-host "Found $localCertificatesCount certificate in the local directory"
+}
+
 if ($tenantSearchResults) {
     write-host "tenantName, createTenantApiKey, Number of Certificates, deleteTenantApiKey"
 
@@ -263,7 +271,7 @@ if ($tenantSearchResults) {
             if ($certificateDirectory) {
                 # Get certificate a list of the certificate file names
                 $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
-
+                
                 # Loop through each certificate and add each certificate to the tenant
                 foreach ($item in $localCertificates) {
                     [string]$certificate = get-content $certificateDirectory$item
@@ -271,12 +279,13 @@ if ($tenantSearchResults) {
                 }
             }
             
+            # Check if the $deletedExpired switch is set.  If it is run the deleteExpiredCertificate function
             if ($deletedExpired) {
                 deleteExpiredCertificate $manager $tenantApiKey
             }            
 
             # Count the number of certificates in the tenant
-            #$tenantCertStatus = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
+            $tenantCertStatus = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
             
             # Delete the API key from the tenant.
             $deleteTenantApiKeyStatus =  deleteTenantApiKey $manager $tenantApiKey $apiKeyID
