@@ -35,7 +35,8 @@ This script should clean up the ApiKeys that it creates.  If the script can't de
 param (
     [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
     [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$apikey,
-    [Parameter(Mandatory=$false, HelpMessage="Directory that contains all of the certificates; ex c:\temp\certificates\")][string]$certificateDirectory
+    [Parameter(Mandatory=$false, HelpMessage="Directory that contains all of the certificates; ex c:\temp\certificates\")][string]$certificateDirectory,
+    [switch]$deletedExpired
 )
 
 #$certificateDirectory = "C:\temp\certs\"
@@ -131,17 +132,17 @@ function tenantCertificateReportFunction {
     )
 
     $headers = @{
-    "api-version" = "v1"
-    "api-secret-key" = $tenantApiKey
+        "api-version" = "v1"
+        "api-secret-key" = $tenantApiKey
     }
     
-    $computerSearchURL = "https://$manager/api/certificates"
+    $certificateSearchURL = "https://$manager/api/certificates"
 
-    $computerSearchResults = Invoke-WebRequest -Uri $computerSearchURL -Method Get -ContentType "application/json" -Headers $headers -SkipCertificateCheck  | ConvertFrom-Json  
+    $certificateSearchResults = Invoke-WebRequest -Uri $certificateSearchURL -Method Get -ContentType "application/json" -Headers $headers -SkipCertificateCheck  | ConvertFrom-Json  
 
-    $certificateSerialNumber = $computerSearchResults.certificates.certificateDetails.serialNumber
+    $certificateSerialNumber = $certificateSearchResults.certificates.certificateDetails.serialNumber
     $certificateCount = 0
-    foreach ($item in $computerSearchResults.certificates) {
+    foreach ($item in $certificateSearchResults.certificates) {
         $certificateCount+=1
     }
 
@@ -176,6 +177,37 @@ function addCertificate{
         $addCertificateStatus = "Failed to add certificate"
     }
     return $addCertificateStatus  
+}
+
+function deleteExpiredCertificate {
+    param (
+        [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
+        [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$tenantApiKey
+    )
+
+    $headers = @{
+        "api-version" = "v1"
+        "api-secret-key" = $tenantApiKey
+    }
+    
+    $certificateSearchURL = "https://$manager/api/certificates"
+
+    $certificateSearchResults = Invoke-WebRequest -Uri $certificateSearchURL -Method Get -ContentType "application/json" -Headers $headers -SkipCertificateCheck  | ConvertFrom-Json  
+    $currentTime = [int64](([datetime]::UtcNow)-(get-date "1/1/1970")).TotalMilliseconds
+    foreach ($item in $certificateSearchResults.certificates) {
+        $apikeyCreatedTime = (Get-Date "1970-01-01 00:00:00.000Z") + ([TimeSpan]::FromMilliSeconds($item.certificateDetails.notAfter))
+        
+        #write-host $item.certificateDetails.notAfter
+
+        if ($item.certificateDetails.notAfter -le $currentTime) {
+            write-host "Certificate is expired this is the ID: "$item.ID
+        }
+        else {
+            Write-host "Certificate is still valid"
+        }
+        
+    }
+    
 }
 
 function deleteTenantApiKey {
@@ -228,19 +260,23 @@ if ($tenantSearchResults) {
             $tenantApiKey = $tenantApiKeyArray[1]
             $tenantApiKeyCreateStatus = $tenantApiKeyArray[2]
             
-            <#
-            # Get certificate a list of the certificate file names
-            $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
+            if ($certificateDirectory) {
+                # Get certificate a list of the certificate file names
+                $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
 
-            # Loop through each certificate and add each certificate to the tenant
-            foreach ($item in $localCertificates) {
-                [string]$certificate = get-content $certificateDirectory$item
-                $addCertificateStatus = addCertificate $manager $tenantApiKey $certificate
+                # Loop through each certificate and add each certificate to the tenant
+                foreach ($item in $localCertificates) {
+                    [string]$certificate = get-content $certificateDirectory$item
+                    $addCertificateStatus = addCertificate $manager $tenantApiKey $certificate
+                }
             }
-            #>
+            
+            if ($deletedExpired) {
+                deleteExpiredCertificate $manager $tenantApiKey
+            }            
 
             # Count the number of certificates in the tenant
-            $tenantCertStatus = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
+            #$tenantCertStatus = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
             
             # Delete the API key from the tenant.
             $deleteTenantApiKeyStatus =  deleteTenantApiKey $manager $tenantApiKey $apiKeyID
