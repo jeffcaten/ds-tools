@@ -259,6 +259,7 @@ function deleteTenantApiKey {
 # Search for all active tenants in T0
 $tenantSearchResults = tenatSearchFunction $manager
 
+# Count the number of certificates in the $certificateDirectory to give the user some output.
 if ($certificateDirectory) {
     $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
     $localCertificatesCount = $localCertificates.count
@@ -282,7 +283,7 @@ if ($tenantSearchResults) {
             $tenantApiKeyCreateStatus = $tenantApiKeyArray[2]
             
             if ($certificateDirectory) {
-                # Get certificate a list of the certificate file names
+                # Get a list of the local certificate file names
                 $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter $certificateFileExtensionFilter -Recurse -File -Name
                 
                 # Loop through each certificate and add each certificate to the tenant
