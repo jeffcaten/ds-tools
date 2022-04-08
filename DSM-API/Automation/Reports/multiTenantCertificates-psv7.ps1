@@ -16,8 +16,18 @@ The -apikey parameter requires a Deep Security Manager API key with the full acc
 .PARAMETER certificateDirectory
 The -certificateDirectory parameter requires a directory path like c:\temp\certificates\.  The trailing slash must be included.
 
+.PARAMETER deletedExpired
+If this switch is set when the script is run the script will check each trusted certificated in each tenant to see if it is expired.  If the certificate is expired the script will delete the expired certificate.
+See Example
+
+
 .EXAMPLE
+Add trusted certificates:
 .\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -certificateDirectory c:\temp\certs\
+Add trusted certificates and delete expired certificates:
+.\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -certificateDirectory c:\temp\certs\ -deletedExpired
+Delete expired certificates
+.\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -deletedExpired
 
 .NOTES
 Example Script Output:
