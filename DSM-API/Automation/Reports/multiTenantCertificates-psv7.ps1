@@ -16,6 +16,8 @@ The -apikey parameter requires a Deep Security Manager API key with the full acc
 .PARAMETER certificateDirectory
 The -certificateDirectory parameter requires a directory path like c:\temp\certificates\.  The trailing slash must be included.
 
+The script is only looking for files with a .cer extension.  This can be changed by updating the $certificateFileExtensionFilter variable.
+
 .PARAMETER deletedExpired
 If this switch is set when the script is run the script will check each trusted certificated in each tenant to see if it is expired.  If the certificate is expired the script will delete the expired certificate.
 See Example
@@ -50,6 +52,7 @@ param (
 )
 
 #$certificateDirectory = "C:\temp\certs\"
+$certificateFileExtensionFilter = "*.cer"
 
 # Set Cert verification and TLS version to 1.2.
 [System.Net.ServicePointManager]::ServerCertificateValidationCallback={$true}
@@ -280,7 +283,7 @@ if ($tenantSearchResults) {
             
             if ($certificateDirectory) {
                 # Get certificate a list of the certificate file names
-                $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
+                $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter $certificateFileExtensionFilter -Recurse -File -Name
                 
                 # Loop through each certificate and add each certificate to the tenant
                 foreach ($item in $localCertificates) {
@@ -307,7 +310,7 @@ if ($tenantSearchResults) {
 }
 
 # Add certificates to T0
-$localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
+$localCertificates = Get-ChildItem -Path $certificateDirectory -Filter $certificateFileExtensionFilter -Recurse -File -Name
 foreach ($item in $localCertificates) {
     [string]$certificate = get-content $certificateDirectory$item
     $addCertificateStatus = addCertificate $manager $apikey $certificate
