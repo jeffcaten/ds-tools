@@ -1,11 +1,13 @@
 <#
 .SYNOPSIS
-Powershell script adds trusted certificates to all active tenants and T0 in a multi-tenant Deep Security deployment
+Powershell script adds/deletes trusted certificates in all active tenants and T0 in a multi-tenant Deep Security deployment
 
 .DESCRIPTION
-The multiTenantCertificates script will login use an API key from T0 to get a list of active tenants.  
-The script will then create and ApiKey for that tenant then use that new Apikey to add all of the certificates from a specified directory.  
-The newly create tenant Apikey will be deleted and the script will move on to the next tenant.
+The multiTenantCertificates-psv7.ps1 script will retrieve all trusted certificates from each tenant and show if there are any expired certificates. 
+Using the -certificateDirectory parameter you can add trusted certificates to each tenant and T0
+Using the -deletedExpired switch, the script will delete any certificates that are expired at the time the script is run.
+This help center article has more detail about managing trusted certificates in the deep security manager: 
+https://help.deepsecurity.trendmicro.com/20_0/on-premise/trusted-certificates.html?Highlight=trusted%20certificates
 
 .PARAMETER manager
 The -manager parameter requires a hostname or IP and port in the format hostname.local:4119 or 198.51.100.10:443
@@ -41,7 +43,7 @@ Example Script Output:
     test02, Success, 140, 20, Success
     T0, Success, 135, 15, Success
 
-This script should clean up the ApiKeys that it creates.  If the script can't delete the AddCertificate ApiKey for some reason an adminitrator will need to clean up the left over ApiKey from the effected tenants.
+This script should clean up the ApiKeys that it creates.  If the script can't delete the 'Trusted Certificate' ApiKey for some reason an adminitrator will need to clean up the left over ApiKey from the effected tenants.
 #>
 #requires -version 7.0
 
