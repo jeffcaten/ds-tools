@@ -16,17 +16,30 @@ The -apikey parameter requires a Deep Security Manager API key with the full acc
 .PARAMETER certificateDirectory
 The -certificateDirectory parameter requires a directory path like c:\temp\certificates\.  The trailing slash must be included.
 
+The script is only looking for files with a .cer extension.  This can be changed by updating the $certificateFileExtensionFilter variable.
+
+.PARAMETER deletedExpired
+If this switch is set when the script is run the script will check each trusted certificated in each tenant to see if it is expired.  If the certificate is expired the script will delete the expired certificate.
+See Example
+
+
 .EXAMPLE
+Output count of trusted certificates:
+.\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key>
+Add trusted certificates:
 .\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -certificateDirectory c:\temp\certs\
+Add trusted certificates and delete expired certificates:
+.\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -certificateDirectory c:\temp\certs\ -deletedExpired
+Delete expired certificates
+.\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -deletedExpired
+
 
 .NOTES
 Example Script Output:
-    tenantName, createTenantApiKey, Number of Certificates, deleteTenantApiKey
-    test1, Success, 4, Success
-    test3, Success, 4, Success
-    test4, Success, 4, Success
-    test5, Success, 4, Success
-    T0, Success, 4, Success
+    tenantName, createTenantApiKey, Number of Certificates, Expired Certificates, deleteTenantApiKey
+    test01, Success, 120, 0, Success
+    test02, Success, 140, 20, Success
+    T0, Success, 135, 15, Success
 
 This script should clean up the ApiKeys that it creates.  If the script can't delete the AddCertificate ApiKey for some reason an adminitrator will need to clean up the left over ApiKey from the effected tenants.
 #>
@@ -35,10 +48,12 @@ This script should clean up the ApiKeys that it creates.  If the script can't de
 param (
     [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
     [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$apikey,
-    [Parameter(Mandatory=$true, HelpMessage="Directory that contains all of the certificates; ex c:\temp\certificates\")][string]$certificateDirectory
+    [Parameter(Mandatory=$false, HelpMessage="Directory that contains all of the certificates; ex c:\temp\certificates\")][string]$certificateDirectory,
+    [switch]$deletedExpired
 )
 
 #$certificateDirectory = "C:\temp\certs\"
+$certificateFileExtensionFilter = "*.cer"
 
 # Set Cert verification and TLS version to 1.2.
 [System.Net.ServicePointManager]::ServerCertificateValidationCallback={$true}
@@ -71,8 +86,14 @@ function tenatSearchFunction {
         )
     }
     $tenantSearchBody = $tenantSearchHash | ConvertTo-Json
-    
-    $tenantSearchResults = Invoke-WebRequest -Uri $tenantSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $tenantSearchBody -SkipCertificateCheck   | ConvertFrom-Json
+    try {
+        $tenantSearchResults = Invoke-WebRequest -Uri $tenantSearchURL -Method Post -ContentType "application/json" -Headers $headers -Body $tenantSearchBody -SkipCertificateCheck   | ConvertFrom-Json        
+    }
+    catch {
+        $e = $Error[0]
+        $line = $_.InvocationInfo.ScriptLineNumber
+        Write-Host -ForegroundColor Red "caught exception: $e at line $line"
+    }
 
     return $tenantSearchResults
 }
@@ -88,7 +109,7 @@ function createTenantApiKeyFunction {
     [long]$timestamp = (([datetime]::UtcNow)-(Get-Date -Date '1/1/1970')).TotalMilliseconds + 2000000
 
     $createTenantApiKeyHash = @{
-        keyName = 'AddCertificate'
+        keyName = 'Trusted Certificate'
         description = 'Temp API Key used to add certificates to this tenant'
         locale = 'en-US'
         timeZone = 'America/Chicago'
@@ -102,6 +123,9 @@ function createTenantApiKeyFunction {
     }
     catch {
         $tenantApiKeyCreateStatus = "Failed"
+        $e = $Error[0]
+        $line = $_.InvocationInfo.ScriptLineNumber
+        Write-Host -ForegroundColor Red "caught exception: $e at line $line"
     }
 
     if ($createTenantApiKeyResults.secretKey) {
@@ -131,21 +155,38 @@ function tenantCertificateReportFunction {
     )
 
     $headers = @{
-    "api-version" = "v1"
-    "api-secret-key" = $tenantApiKey
+        "api-version" = "v1"
+        "api-secret-key" = $tenantApiKey
     }
     
-    $computerSearchURL = "https://$manager/api/certificates"
+    $certificateSearchURL = "https://$manager/api/certificates"
 
-    $computerSearchResults = Invoke-WebRequest -Uri $computerSearchURL -Method Get -ContentType "application/json" -Headers $headers -SkipCertificateCheck  | ConvertFrom-Json  
-
-    $certificateSerialNumber = $computerSearchResults.certificates.certificateDetails.serialNumber
-    $certificateCount = 0
-    foreach ($item in $computerSearchResults.certificates) {
-        $certificateCount+=1
+    try {
+        $certificateSearchResults = Invoke-WebRequest -Uri $certificateSearchURL -Method Get -ContentType "application/json" -Headers $headers -SkipCertificateCheck  | ConvertFrom-Json  
+    }
+    catch {
+        $e = $Error[0]
+        $line = $_.InvocationInfo.ScriptLineNumber
+        Write-Host -ForegroundColor Red "caught exception: $e at line $line"
+    }
+    
+    $currentTime = [int64](([datetime]::UtcNow)-(get-date "1/1/1970")).TotalMilliseconds
+    $certificateSerialNumber = $certificateSearchResults.certificates.certificateDetails.serialNumber
+    $certificateCountTotal = 0
+    $certificateCountExpired = 0
+    foreach ($item in $certificateSearchResults.certificates) {
+        $certificateCountTotal+=1
+        if ($item.certificateDetails.notAfter -le $currentTime){
+            $certificateCountExpired+=1
+        }
     }
 
-    return $certificateCount
+    $returnArray = @()
+    $returnArray += $certificateCountTotal
+    $returnArray += $certificateCountExpired
+
+    return ,$returnArray
+
 }
 
 function addCertificate{
@@ -174,8 +215,44 @@ function addCertificate{
     }
     catch {
         $addCertificateStatus = "Failed to add certificate"
+        $e = $Error[0]
+        $line = $_.InvocationInfo.ScriptLineNumber
+        Write-Host -ForegroundColor Red "caught exception: $e at line $line"
     }
     return $addCertificateStatus  
+}
+
+function deleteExpiredCertificate {
+    param (
+        [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
+        [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$tenantApiKey
+    )
+
+    $headers = @{
+        "api-version" = "v1"
+        "api-secret-key" = $tenantApiKey
+    }
+    
+    $certificateListURL = "https://$manager/api/certificates"
+    $certificateDeletehURL = "https://$manager/api/certificates"
+
+    $certificateListResults = Invoke-WebRequest -Uri $certificateListURL -Method Get -ContentType "application/json" -Headers $headers -SkipCertificateCheck  | ConvertFrom-Json  
+    $currentTime = [int64](([datetime]::UtcNow)-(get-date "1/1/1970")).TotalMilliseconds
+    foreach ($item in $certificateListResults.certificates) {
+        #$apikeyCreatedTime = (Get-Date "1970-01-01 00:00:00.000Z") + ([TimeSpan]::FromMilliSeconds($item.certificateDetails.notAfter))
+        #write-host $item.certificateDetails.notAfter
+
+        if ($item.certificateDetails.notAfter -le $currentTime) {
+            $certificateID = $item.ID
+            #write-host "Certificate is expired this is the ID: "$certificateID
+            $certificateDeleteResults = Invoke-WebRequest -Uri $certificateDeletehURL/$certificateID -Method Delete -ContentType "application/json" -Headers $headers -SkipCertificateCheck  | ConvertFrom-Json
+        }
+        else {
+            #Write-host "Certificate is still valid"
+        }
+        
+    }
+    
 }
 
 function deleteTenantApiKey {
@@ -196,6 +273,9 @@ function deleteTenantApiKey {
     }
     catch {
         $deleteTenantApiKeyStatus = "Failed"
+        $e = $Error[0]
+        $line = $_.InvocationInfo.ScriptLineNumber
+        Write-Host -ForegroundColor Red "caught exception: $e at line $line"
     }
 
     $statusCodeResults = $deleteTenantApiKeyResults.StatusCode
@@ -212,8 +292,15 @@ function deleteTenantApiKey {
 # Search for all active tenants in T0
 $tenantSearchResults = tenatSearchFunction $manager
 
-if ($tenantSearchResults) {
-    write-host "tenantName, createTenantApiKey, Number of Certificates, deleteTenantApiKey"
+# Count the number of certificates in the $certificateDirectory to give the user some output.
+if ($certificateDirectory) {
+    $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
+    $localCertificatesCount = $localCertificates.count
+    write-host "Found $localCertificatesCount certificate(s) in the local directory"
+}
+
+if ($tenantSearchResults.tenants) {
+    write-host "tenantName, createTenantApiKey, Number of Certificates, Expired Certificates, deleteTenantApiKey"
 
     # Loop through each tenant
     foreach ($tenant in $tenantSearchResults.tenants) {
@@ -222,39 +309,55 @@ if ($tenantSearchResults) {
 
         # Create an API key for each tenant
         $tenantApiKeyArray = createTenantApiKeyFunction $manager $tenantID
-
         if ($tenantApiKeyArray[0]) {
             $apiKeyID = $tenantApiKeyArray[0]
             $tenantApiKey = $tenantApiKeyArray[1]
             $tenantApiKeyCreateStatus = $tenantApiKeyArray[2]
-            
-            # Get certificate a list of the certificate file names
-            $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
 
-            # Loop through each certificate and add each certificate to the tenant
-            foreach ($item in $localCertificates) {
-                [string]$certificate = get-content $certificateDirectory$item
-                $addCertificateStatus = addCertificate $manager $tenantApiKey $certificate
+            if ($certificateDirectory) {
+                # Get a list of the local certificate file names
+                $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter $certificateFileExtensionFilter -Recurse -File -Name
+                
+                # Loop through each certificate and add each certificate to the tenant
+                foreach ($item in $localCertificates) {
+                    [string]$certificate = get-content $certificateDirectory$item
+                    $addCertificateStatus = addCertificate $manager $tenantApiKey $certificate
+                }
             }
+            
+            # Check if the $deletedExpired switch is set.  If it is run the deleteExpiredCertificate function
+            if ($deletedExpired) {
+                deleteExpiredCertificate $manager $tenantApiKey
+            }            
 
             # Count the number of certificates in the tenant
             $tenantCertStatus = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
+            $totalCertCount = $tenantCertStatus[0]
+            $expiredCertCount = $tenantCertStatus[1]
             
             # Delete the API key from the tenant.
             $deleteTenantApiKeyStatus =  deleteTenantApiKey $manager $tenantApiKey $apiKeyID
 
-            write-host "$TenantName, $tenantApiKeyCreateStatus, $tenantCertStatus, $deleteTenantApiKeyStatus"
+            write-host "$TenantName, $tenantApiKeyCreateStatus, $totalCertCount, $expiredCertCount, $deleteTenantApiKeyStatus"
         }
         Start-Sleep -m 40
     } 
 }
 
 # Add certificates to T0
-$localCertificates = Get-ChildItem -Path $certificateDirectory -Filter *.cer -Recurse -File -Name
-foreach ($item in $localCertificates) {
-    [string]$certificate = get-content $certificateDirectory$item
-    $addCertificateStatus = addCertificate $manager $apikey $certificate
+
+if ($certificateDirectory) {
+    $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter $certificateFileExtensionFilter -Recurse -File -Name
+    foreach ($item in $localCertificates) {
+        [string]$certificate = get-content $certificateDirectory$item
+        $addCertificateStatus = addCertificate $manager $apikey $certificate
+    }
 }
+if ($deletedExpired) {
+    deleteExpiredCertificate $manager $apikey
+} 
 $TenantName = "T0"
 $tenantCertStatus = tenantCertificateReportFunction $manager $apikey $TenantName
-write-host "$TenantName, $tenantApiKeyCreateStatus, $tenantCertStatus, $deleteTenantApiKeyStatus"
+$totalCertCount = $tenantCertStatus[0]
+$expiredCertCount = $tenantCertStatus[1]
+write-host "$TenantName, $tenantApiKeyCreateStatus, $totalCertCount, $expiredCertCount, $deleteTenantApiKeyStatus"
