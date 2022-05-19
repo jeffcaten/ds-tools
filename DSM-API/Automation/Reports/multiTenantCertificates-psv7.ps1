@@ -24,6 +24,16 @@ The script is only looking for files with a .cer extension.  This can be changed
 If this switch is set when the script is run the script will check each trusted certificated in each tenant to see if it is expired.  If the certificate is expired the script will delete the expired certificate.
 See Example
 
+.PARAMETER report
+If this switch is set when the script is run the script will output a CSV report with all of the trusted certificates from each tenant and T0.  Example report data:
+
+TenantName, ID, issuerDN, subjectDN, notBefore, notAfter, serialNumber, sha1Fingerprint, sha256Fingerprint, trusted, purpose, rawCertificate
+test01, 22, CN=example.com, CN=example.com, 04/08/2022 10:37:19, 04/13/2022 10:37:19, 52:F8:06:85:EE:E3:4E:E7:8F:C2:C6:A3:5B:F4:23:BB:C3:FD:81:7B, B5:61:D0:16:A3:34:04:9F:33:99:30:0E:B7:8E:2D:E1:66:4B:A4:D9, 55:65:7A:C5:18:7C:59:07:9A:BC:05:68:DC:48:B9:7E:82:50:8D:5C:9E:78:91:BF:21:09:69:BA:1D:95:47:24, True, SSL, -----BEGIN CERTIFICATE-----MIIC...-----END CERTIFICATE-----
+
+Important note:
+If the report switch is set the report will be generated before any certificates are added or deleted.  This could be used as a backup of the existing certificates.
+If you take the data from the rawCertificate field in the report and put it in a .cer file you could use that .cer file to add the certificate back you deleted the wrong certificate by accident.
+
 
 .EXAMPLE
 Output count of trusted certificates:
@@ -32,8 +42,13 @@ Add trusted certificates:
 .\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -certificateDirectory c:\temp\certs\
 Add trusted certificates and delete expired certificates:
 .\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -certificateDirectory c:\temp\certs\ -deletedExpired
+Add trusted certificates and delete expired certificates and output report:
+.\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -certificateDirectory c:\temp\certs\ -deletedExpired -report
 Delete expired certificates
 .\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -deletedExpired
+Output report only
+.\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -report
+
 
 
 .NOTES
@@ -52,7 +67,8 @@ param (
     [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$apikey,
     [Parameter(Mandatory=$false, HelpMessage="Directory that contains all of the certificates; ex c:\temp\certificates\")][string]$certificateDirectory,
     [Parameter(Mandatory=$false, HelpMessage="Serial Number to delete by serial number")][string]$certToDeleteBySerialNumber,
-    [switch]$deletedExpired
+    [switch]$deletedExpired,
+    [switch]$report
 )
 
 #$certificateDirectory = "C:\temp\certs\"
@@ -327,6 +343,24 @@ if ($certificateDirectory) {
     write-host "Found $localCertificatesCount certificate(s) in the local directory"
 }
 
+# If the report switch is set write out report file with headers
+if ($report) {
+    $reportTime = get-date -f yyyy-MM-dd-HHmmss
+    $reportName = "c:\temp\certificateReport - $reportTime"
+    $reportFile = $reportName + ".csv"
+    $ReportHeader = 'TenantName, ID, issuerDN, subjectDN, notBefore, notAfter, serialNumber, sha1Fingerprint, sha256Fingerprint, trusted, purpose, rawCertificate'
+
+    # Writing out the CSV and CSV headers.
+    # Try catch to throw a warning if the file can't be created
+    try{
+        Add-Content -Path $reportFile -Value $ReportHeader -ErrorAction Stop
+    }catch{
+        $Error[0]
+        Write-Warning "$_"
+        Continue
+    }
+}
+
 if ($tenantSearchResults.tenants) {
     write-host "tenantName, createTenantApiKey, Number of Certificates, Expired Certificates, deleteTenantApiKey"
 
@@ -337,11 +371,44 @@ if ($tenantSearchResults.tenants) {
 
         # Create an API key for each tenant
         $tenantApiKeyArray = createTenantApiKeyFunction $manager $tenantID
+        
+        # Check if there are any results from createTenantApiKeyFunction
         if ($tenantApiKeyArray[0]) {
             $apiKeyID = $tenantApiKeyArray[0]
             $tenantApiKey = $tenantApiKeyArray[1]
             $tenantApiKeyCreateStatus = $tenantApiKeyArray[2]
 
+            # If the report switch is set loop through all certificates in tenant and output to $repotFile
+            if ($report) {
+                $tenantCerts = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
+                $tenantCertList = $tenantCerts[2]
+
+                foreach ($certificate in $tenantCertList.certificates){
+                    $apikeyCreatedTime = (Get-Date "1970-01-01 00:00:00.000Z") + ([TimeSpan]::FromMilliSeconds($Item.created))
+
+                    $TenantName = $TenantName
+                    $ID = $certificate.ID
+                    $issuerDNCommas = $certificate.certificateDetails.issuerDN
+                    $issuerDN = $issuerDNCommas -replace "," -replace ""
+                    $subjectDNCommas = $certificate.certificateDetails.subjectDN
+                    $subjectDN = $subjectDNCommas -replace "," -replace ""
+                    $notBefore = (Get-Date "1970-01-01 00:00:00.000Z") + ([TimeSpan]::FromMilliSeconds($certificate.certificateDetails.notBefore))
+                    $notAfter = (Get-Date "1970-01-01 00:00:00.000Z") + ([TimeSpan]::FromMilliSeconds($certificate.certificateDetails.notAfter))
+                    $serialNumber = $certificate.certificateDetails.serialNumber
+                    $sha1Fingerprint = $certificate.certificateDetails.sha1Fingerprint
+                    $sha256Fingerprint = $certificate.certificateDetails.sha256Fingerprint
+                    $trusted = $certificate.trusted
+                    $purpose = $certificate.purpose
+                    $rawCertificateLineBreaks = $certificate.certificate
+                    $rawCertificate = $rawCertificateLineBreaks -replace "\n" -replace ""
+
+                    $ReportData =  "$TenantName, $ID, $issuerDN, $subjectDN, $notBefore, $notAfter, $serialNumber, $sha1Fingerprint, $sha256Fingerprint, $trusted, $purpose, $rawCertificate"
+                    Add-Content -Path $reportFile -Value $ReportData
+                }
+            }
+
+            # Check if $certificateDirectory was populated by the user
+            #   If it is loop through all of the local certificates and add each certificate to the current tenant.
             if ($certificateDirectory) {
                 # Get a list of the local certificate file names
                 $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter $certificateFileExtensionFilter -Recurse -File -Name
