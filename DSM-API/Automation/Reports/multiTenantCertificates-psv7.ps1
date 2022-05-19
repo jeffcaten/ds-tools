@@ -52,7 +52,8 @@ param (
     [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$apikey,
     [Parameter(Mandatory=$false, HelpMessage="Directory that contains all of the certificates; ex c:\temp\certificates\")][string]$certificateDirectory,
     [Parameter(Mandatory=$false, HelpMessage="Serial Number to delete by serial number")][string]$certToDeleteBySerialNumber,
-    [switch]$deletedExpired
+    [switch]$deletedExpired,
+    [switch]$report
 )
 
 #$certificateDirectory = "C:\temp\certs\"
@@ -343,6 +344,14 @@ if ($tenantSearchResults.tenants) {
             $apiKeyID = $tenantApiKeyArray[0]
             $tenantApiKey = $tenantApiKeyArray[1]
             $tenantApiKeyCreateStatus = $tenantApiKeyArray[2]
+
+            if ($report) {
+                $tenantCerts = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
+                $tenantCertList = $tenantCerts[2]
+                foreach ($certificate in $tenantCertList.certificates){
+                    write-host $certificate
+                }
+            }
 
             # Check if $certificateDirectory was populated by the user
             #   If it is loop through all of the local certificates and add each certificate to the current tenant.
