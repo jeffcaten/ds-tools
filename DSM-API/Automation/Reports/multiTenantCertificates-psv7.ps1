@@ -502,7 +502,25 @@ if ($certificateDirectory) {
 }
 if ($deletedExpired) {
     deleteExpiredCertificate $manager $apikey
-} 
+}
+
+if ($certToDeleteBySerialNumber) {
+    # Get list of certificates from tenant
+    $tenantCerts = tenantCertificateReportFunction $manager $apikey
+    $tenantCertList = $tenantCerts[2]
+
+    # Loop through the list of certificate
+    foreach ($certificate in $tenantCertList.certificates) {
+        # Check to see if the cert serial number matches the cert serial number provided by the user via $certToDeleteBySerialNumber
+        if ($certToDeleteBySerialNumber -eq $certificate.certificateDetails.serialNumber) {
+            write-host "Found certificate with serial number: "$certificate.certificateDetails.serialNumber
+            write-host $certificate.ID
+            $certificateID = $certificate.ID
+            deleteCertificate $manager $apikey $certificateID
+        }
+    }
+}
+
 $TenantName = "T0"
 $tenantCertStatus = tenantCertificateReportFunction $manager $apikey $TenantName
 $totalCertCount = $tenantCertStatus[0]
