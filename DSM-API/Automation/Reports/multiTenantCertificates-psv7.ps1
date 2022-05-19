@@ -24,6 +24,11 @@ The script is only looking for files with a .cer extension.  This can be changed
 If this switch is set when the script is run the script will check each trusted certificated in each tenant to see if it is expired.  If the certificate is expired the script will delete the expired certificate.
 See Example
 
+.PARAMETER certToDeleteBySerialNumber
+The -certToDeleteBySerialNumber parameter takes a certificate serial number like 52:F8:06:85:EE:E3:4E:E7:8F:C2:C6:A3:5B:F4:23:BB:C3:FD:81:7B.
+
+If you need to delete a certificate but you are not sure what the serial number is, run this script with the -report switch.  This will output a CSV that will contain all of the certificate and their matching serial numbers.
+
 .PARAMETER report
 If this switch is set when the script is run the script will output a CSV report with all of the trusted certificates from each tenant and T0.  Example report data:
 
@@ -46,6 +51,8 @@ Add trusted certificates and delete expired certificates and output report:
 .\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -certificateDirectory c:\temp\certs\ -deletedExpired -report
 Delete expired certificates
 .\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -deletedExpired
+Delete Certificate by serial number
+.\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -certToDeleteBySerialNumber 52:F8:06:85:EE:E3:4E:E7:8F:C2:C6:A3:5B:F4:23:BB:C3:FD:81:7B
 Output report only
 .\multiTenantCertificates-psv7.ps1 -manager <DSM Hostname> -apikey <API-Key> -report
 
