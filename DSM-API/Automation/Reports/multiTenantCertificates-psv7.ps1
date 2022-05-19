@@ -333,6 +333,8 @@ function deleteCertificate{
     }
 }
 
+
+#  --------------------TN Start--------------------
 # Search for all active tenants in T0
 $tenantSearchResults = tenatSearchFunction $manager
 
@@ -457,6 +459,10 @@ if ($tenantSearchResults.tenants) {
     } 
 }
 
+#  --------------------TN End--------------------
+
+
+#  --------------------T0 Start--------------------
 # Add certificates to T0
 
 if ($certificateDirectory) {
@@ -474,3 +480,5 @@ $tenantCertStatus = tenantCertificateReportFunction $manager $apikey $TenantName
 $totalCertCount = $tenantCertStatus[0]
 $expiredCertCount = $tenantCertStatus[1]
 write-host "$TenantName, $tenantApiKeyCreateStatus, $totalCertCount, $expiredCertCount, $deleteTenantApiKeyStatus"
+
+#  --------------------T0 End--------------------
