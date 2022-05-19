@@ -465,6 +465,34 @@ if ($tenantSearchResults.tenants) {
 #  --------------------T0 Start--------------------
 # Add certificates to T0
 
+if ($report) {
+    $tenantCerts = tenantCertificateReportFunction $manager $apikey
+    $tenantCertList = $tenantCerts[2]
+
+    foreach ($certificate in $tenantCertList.certificates){
+        $apikeyCreatedTime = (Get-Date "1970-01-01 00:00:00.000Z") + ([TimeSpan]::FromMilliSeconds($Item.created))
+
+        $TenantName = "T0"
+        $ID = $certificate.ID
+        $issuerDNCommas = $certificate.certificateDetails.issuerDN
+        $issuerDN = $issuerDNCommas -replace "," -replace ""
+        $subjectDNCommas = $certificate.certificateDetails.subjectDN
+        $subjectDN = $subjectDNCommas -replace "," -replace ""
+        $notBefore = (Get-Date "1970-01-01 00:00:00.000Z") + ([TimeSpan]::FromMilliSeconds($certificate.certificateDetails.notBefore))
+        $notAfter = (Get-Date "1970-01-01 00:00:00.000Z") + ([TimeSpan]::FromMilliSeconds($certificate.certificateDetails.notAfter))
+        $serialNumber = $certificate.certificateDetails.serialNumber
+        $sha1Fingerprint = $certificate.certificateDetails.sha1Fingerprint
+        $sha256Fingerprint = $certificate.certificateDetails.sha256Fingerprint
+        $trusted = $certificate.trusted
+        $purpose = $certificate.purpose
+        $rawCertificateLineBreaks = $certificate.certificate
+        $rawCertificate = $rawCertificateLineBreaks -replace "\n" -replace ""
+
+        $ReportData =  "$TenantName, $ID, $issuerDN, $subjectDN, $notBefore, $notAfter, $serialNumber, $sha1Fingerprint, $sha256Fingerprint, $trusted, $purpose, $rawCertificate"
+        Add-Content -Path $reportFile -Value $ReportData
+    }
+}
+
 if ($certificateDirectory) {
     $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter $certificateFileExtensionFilter -Recurse -File -Name
     foreach ($item in $localCertificates) {
