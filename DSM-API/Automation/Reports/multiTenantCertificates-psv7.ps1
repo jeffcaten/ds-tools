@@ -51,6 +51,7 @@ param (
     [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
     [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$apikey,
     [Parameter(Mandatory=$false, HelpMessage="Directory that contains all of the certificates; ex c:\temp\certificates\")][string]$certificateDirectory,
+    [Parameter(Mandatory=$false, HelpMessage="Serial Number to delete by serial number")][string]$certToDeleteBySerialNumber,
     [switch]$deletedExpired
 )
 
