@@ -51,6 +51,7 @@ param (
     [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
     [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$apikey,
     [Parameter(Mandatory=$false, HelpMessage="Directory that contains all of the certificates; ex c:\temp\certificates\")][string]$certificateDirectory,
+    [Parameter(Mandatory=$false, HelpMessage="Serial Number to delete by serial number")][string]$certToDeleteBySerialNumber,
     [switch]$deletedExpired
 )
 
@@ -186,6 +187,7 @@ function tenantCertificateReportFunction {
     $returnArray = @()
     $returnArray += $certificateCountTotal
     $returnArray += $certificateCountExpired
+    $returnArray += $certificateSearchResults
 
     return ,$returnArray
 
@@ -290,6 +292,30 @@ function deleteTenantApiKey {
     return $deleteTenantApiKeyStatus
 }
 
+function deleteCertificate{
+    param (
+        [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
+        [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$tenantApiKey,
+        [Parameter(Mandatory=$false, HelpMessage="Certificate ID")][string]$certificateID
+    )
+
+    $deleteCertificatehURL = "https://$manager/api/certificates/$certificateID"
+    $headers = @{
+    "api-version" = "v1"
+    "api-secret-key" = $tenantApiKey
+    "Content-Type" = "application/json"
+    }
+
+    try {
+        $deleteCertificateResults = Invoke-WebRequest $deleteCertificatehURL -Method 'DELETE' -Headers $headers -SkipCertificateCheck -SkipHttpErrorCheck  
+    }
+    catch {
+        $deleteCertificateResults = "Failed to delete certificateID $certificateID"
+        $e = $Error[0]
+        $line = $_.InvocationInfo.ScriptLineNumber
+        Write-Host -ForegroundColor Red "caught exception: $e at line $line"
+    }
+}
 
 # Search for all active tenants in T0
 $tenantSearchResults = tenatSearchFunction $manager
@@ -330,7 +356,25 @@ if ($tenantSearchResults.tenants) {
             # Check if the $deletedExpired switch is set.  If it is run the deleteExpiredCertificate function
             if ($deletedExpired) {
                 deleteExpiredCertificate $manager $tenantApiKey
-            }            
+            }
+            
+            # Check to see if if there is a cert to delete by serial number.
+            if ($certToDeleteBySerialNumber) {
+                # Get list of certificates from tenant
+                $tenantCerts = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
+                $tenantCertList = $tenantCerts[2]
+
+                # Loop through the list of certificate
+                foreach ($certificate in $tenantCertList.certificates) {
+                    # Check to see if the cert serial number matches the cert serial number provided by the user via $certToDeleteBySerialNumber
+                    if ($certToDeleteBySerialNumber -eq $certificate.certificateDetails.serialNumber) {
+                        write-host "Found certificate with serial number: "$certificate.certificateDetails.serialNumber
+                        write-host $certificate.ID
+                        $certificateID = $certificate.ID
+                        deleteCertificate $manager $tenantApiKey $certificateID
+                    }
+                }
+            }
 
             # Count the number of certificates in the tenant
             $tenantCertStatus = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
