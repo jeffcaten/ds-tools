@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Powershell script adds/deletes trusted certificates in all active tenants and T0 in a multi-tenant Deep Security deployment
+Powershell script adds/deletes/list trusted certificates in all active tenants and T0 in a multi-tenant Deep Security deployment
 
 .DESCRIPTION
 The multiTenantCertificates-psv7.ps1 script will retrieve all trusted certificates from each tenant and show if there are any expired certificates. 
