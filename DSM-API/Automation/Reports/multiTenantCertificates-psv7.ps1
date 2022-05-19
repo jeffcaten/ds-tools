@@ -291,6 +291,32 @@ function deleteTenantApiKey {
     return $deleteTenantApiKeyStatus
 }
 
+function deleteCertificate{
+    param (
+        [Parameter(Mandatory=$true, HelpMessage="FQDN and port for Deep Security Manager; ex dsm.example.com:443--")][string]$manager,
+        [Parameter(Mandatory=$true, HelpMessage="Deep Security Manager API Key")][string]$tenantApiKey,
+        [Parameter(Mandatory=$false, HelpMessage="Certificate ID")][string]$certificateID
+    )
+
+    $deleteCertificatehURL = "https://$manager/api/certificates$certificateID"
+    $headers = @{
+    "api-version" = "v1"
+    "api-secret-key" = $tenantApiKey
+    "Content-Type" = "application/json"
+    }
+
+    try {
+        $deleteCertificateResults = Invoke-WebRequest $deleteCertificatehURL -Method 'POST' -Headers $headers-SkipCertificateCheck -SkipHttpErrorCheck  
+    }
+    catch {
+        $deleteCertificateResults = "Failed to delete certificateID $certificateID"
+        $e = $Error[0]
+        $line = $_.InvocationInfo.ScriptLineNumber
+        Write-Host -ForegroundColor Red "caught exception: $e at line $line"
+    }
+    return $addCertificateStatus 
+
+}
 
 # Search for all active tenants in T0
 $tenantSearchResults = tenatSearchFunction $manager
