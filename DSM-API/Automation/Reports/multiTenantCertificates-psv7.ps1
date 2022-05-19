@@ -348,7 +348,7 @@ if ($certificateDirectory) {
 # If the report switch is set write out report file with headers
 if ($report) {
     $reportTime = get-date -f yyyy-MM-dd-HHmmss
-    $reportName = "c:\temp\certificateReport - $reportTime"
+    $reportName = "certificateReport - $reportTime"
     $reportFile = $reportName + ".csv"
     $ReportHeader = 'TenantName, ID, issuerDN, subjectDN, notBefore, notAfter, serialNumber, sha1Fingerprint, sha256Fingerprint, trusted, purpose, rawCertificate'
 
