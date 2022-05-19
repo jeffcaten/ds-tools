@@ -357,7 +357,12 @@ if ($tenantSearchResults.tenants) {
             # Check if the $deletedExpired switch is set.  If it is run the deleteExpiredCertificate function
             if ($deletedExpired) {
                 deleteExpiredCertificate $manager $tenantApiKey
-            }            
+            }
+            
+            if ($certToDeleteBySerialNumber) {
+                $certificateID = 0
+                deleteCertificate $manager $tenantApiKey $certificateID
+            }
 
             # Count the number of certificates in the tenant
             $tenantCertStatus = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
