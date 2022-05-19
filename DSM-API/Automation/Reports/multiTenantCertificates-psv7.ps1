@@ -337,11 +337,15 @@ if ($tenantSearchResults.tenants) {
 
         # Create an API key for each tenant
         $tenantApiKeyArray = createTenantApiKeyFunction $manager $tenantID
+        
+        # Check if there are any results from createTenantApiKeyFunction
         if ($tenantApiKeyArray[0]) {
             $apiKeyID = $tenantApiKeyArray[0]
             $tenantApiKey = $tenantApiKeyArray[1]
             $tenantApiKeyCreateStatus = $tenantApiKeyArray[2]
 
+            # Check if $certificateDirectory was populated by the user
+            #   If it is loop through all of the local certificates and add each certificate to the current tenant.
             if ($certificateDirectory) {
                 # Get a list of the local certificate file names
                 $localCertificates = Get-ChildItem -Path $certificateDirectory -Filter $certificateFileExtensionFilter -Recurse -File -Name
