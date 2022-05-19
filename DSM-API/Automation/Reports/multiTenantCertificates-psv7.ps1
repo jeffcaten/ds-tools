@@ -187,6 +187,7 @@ function tenantCertificateReportFunction {
     $returnArray = @()
     $returnArray += $certificateCountTotal
     $returnArray += $certificateCountExpired
+    $returnArray += $certificateSearchResults
 
     return ,$returnArray
 
@@ -298,7 +299,7 @@ function deleteCertificate{
         [Parameter(Mandatory=$false, HelpMessage="Certificate ID")][string]$certificateID
     )
 
-    $deleteCertificatehURL = "https://$manager/api/certificates$certificateID"
+    $deleteCertificatehURL = "https://$manager/api/certificates/$certificateID"
     $headers = @{
     "api-version" = "v1"
     "api-secret-key" = $tenantApiKey
@@ -306,7 +307,7 @@ function deleteCertificate{
     }
 
     try {
-        $deleteCertificateResults = Invoke-WebRequest $deleteCertificatehURL -Method 'POST' -Headers $headers-SkipCertificateCheck -SkipHttpErrorCheck  
+        $deleteCertificateResults = Invoke-WebRequest $deleteCertificatehURL -Method 'DELETE' -Headers $headers -SkipCertificateCheck -SkipHttpErrorCheck  
     }
     catch {
         $deleteCertificateResults = "Failed to delete certificateID $certificateID"
@@ -314,8 +315,6 @@ function deleteCertificate{
         $line = $_.InvocationInfo.ScriptLineNumber
         Write-Host -ForegroundColor Red "caught exception: $e at line $line"
     }
-    return $addCertificateStatus 
-
 }
 
 # Search for all active tenants in T0
@@ -359,9 +358,22 @@ if ($tenantSearchResults.tenants) {
                 deleteExpiredCertificate $manager $tenantApiKey
             }
             
+            # Check to see if if there is a cert to delete by serial number.
             if ($certToDeleteBySerialNumber) {
-                $certificateID = 0
-                deleteCertificate $manager $tenantApiKey $certificateID
+                # Get list of certificates from tenant
+                $tenantCerts = tenantCertificateReportFunction $manager $tenantApiKey $TenantName
+                $tenantCertList = $tenantCerts[2]
+
+                # Loop through the list of certificate
+                foreach ($certificate in $tenantCertList.certificates) {
+                    # Check to see if the cert serial number matches the cert serial number provided by the user via $certToDeleteBySerialNumber
+                    if ($certToDeleteBySerialNumber -eq $certificate.certificateDetails.serialNumber) {
+                        write-host "Found certificate with serial number: "$certificate.certificateDetails.serialNumber
+                        write-host $certificate.ID
+                        $certificateID = $certificate.ID
+                        deleteCertificate $manager $tenantApiKey $certificateID
+                    }
+                }
             }
 
             # Count the number of certificates in the tenant
